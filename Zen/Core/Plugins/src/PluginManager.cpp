@@ -109,11 +109,11 @@ PluginManager::setPluginPath(const boost::filesystem::path& _pluginPath)
             boost::filesystem::system_complete(
             m_rootPath / boost::filesystem::path(&_pluginPath.string().c_str()[1]));
         m_pluginsSearchPath.push_back(pluginPath);
-        std::cout << "DEBUG: setPluginPath using wildcard " << pluginPath.string() << std::endl;
+        m_pApplication->getLogStream() << "DEBUG: setPluginPath using wildcard " << pluginPath.string() << std::endl;
     }
     else
     {
-        std::cout << "DEBUG: setPluginPath " << _pluginPath.string() << std::endl;
+        m_pApplication->getLogStream() << "DEBUG: setPluginPath " << _pluginPath.string() << std::endl;
         m_pluginsSearchPath.push_back(_pluginPath);
     }
 }
@@ -128,11 +128,11 @@ PluginManager::setModulePath(const boost::filesystem::path& _modulePath)
             boost::filesystem::system_complete(
             m_rootPath / boost::filesystem::path(&_modulePath.string().c_str()[1]));
         I_ModuleManager::getSingleton().addPath(modulePath);
-        std::cout << "DEBUG: setModulePath using wildcard " << modulePath.string() << std::endl;
+        m_pApplication->getLogStream() << "DEBUG: setModulePath using wildcard " << modulePath.string() << std::endl;
     }
     else
     {
-        std::cout << "DEBUG: setModulePath " << _modulePath.string() << std::endl;
+        m_pApplication->getLogStream() << "DEBUG: setModulePath " << _modulePath.string() << std::endl;
         I_ModuleManager::getSingleton().addPath(_modulePath);
     }
 }
@@ -149,7 +149,7 @@ PluginManager::installPlugin(const std::string& _moduleName)
     }
 
     // TODO Log Debug
-    std::cout << "DEBUG: installing plugin " << _moduleName << std::endl;
+    m_pApplication->getLogStream() << "DEBUG: installing plugin " << _moduleName << std::endl;
     boost::shared_ptr<PluginInfo> pPluginInfo(new PluginInfo());
 
     // Search the plugin search path for the correct plugin.xml file
@@ -163,7 +163,7 @@ PluginManager::installPlugin(const std::string& _moduleName)
             boost::filesystem::path(_moduleName) /
             boost::filesystem::path("plugin.xml");
 
-        std::cout << "DEBUG: Searching for file " << pluginConfigurationPath.string() << std::endl;
+        m_pApplication->getLogStream() << "DEBUG: Searching for file " << pluginConfigurationPath.string() << std::endl;
 
         if (boost::filesystem::exists(pluginConfigurationPath))
         {
@@ -177,7 +177,7 @@ PluginManager::installPlugin(const std::string& _moduleName)
     {
         std::stringstream errorMessage;
         errorMessage << "Error finding " << _moduleName << "/plugin.xml";
-        std::cout << "DEBUG: " << errorMessage.str() << std::endl;
+        m_pApplication->getLogStream() << "DEBUG: " << errorMessage.str() << std::endl;
         throw Zen::Utility::runtime_exception(errorMessage.str());
     }
     else if (pPluginInfo->parseConfigurationFile(pluginConfigurationPath))
@@ -196,7 +196,7 @@ PluginManager::installPlugin(const std::string& _moduleName)
                 boost::filesystem::path((*iter)->getSchemaFileName());
 
             // TODO Log Debug
-            std::cout << "DEBUG: Parsing Schema: " << schemaPath.string() << std::endl;
+            m_pApplication->getLogStream() << "DEBUG: Parsing Schema: " << schemaPath.string() << std::endl;
 
             //if (XMLConfigurationElement::parse(schemaPath, boost::bind(&ExtensionPoint::addSchemaEntry, (*iter).get(), _1)))
             if ((*iter)->parseSchema(schemaPath))
@@ -211,6 +211,7 @@ PluginManager::installPlugin(const std::string& _moduleName)
 
                 std::stringstream errorMessage;
                 errorMessage << "Error parsing schema " << (*iter)->getSchemaFileName() << " for plugin " << _moduleName << ".  File: " << schemaPath.string();
+                m_pApplication->getLogStream() << errorMessage.str();
                 throw Zen::Utility::runtime_exception(errorMessage.str());
             }
         }
@@ -301,7 +302,7 @@ boost::shared_ptr<I_Plugin>
 PluginManager::getPlugin(PluginInfo* const _pPluginInfo)
 {
     // TODO Log Debug
-    std::cout << "DEBUG: Getting plugin " << _pPluginInfo->getName() << std::endl;
+    m_pApplication->getLogStream() << "DEBUG: Getting plugin " << _pPluginInfo->getName() << std::endl;
 
     plugin_ptr_type pPlugin;
 
@@ -313,7 +314,7 @@ PluginManager::getPlugin(PluginInfo* const _pPluginInfo)
     else
     {
         // TODO Log Debug
-        std::cout << "DEBUG: Oops, " << _pPluginInfo->getName() << " isn't loaded yet. Loading..." << std::endl;
+        m_pApplication->getLogStream() << "DEBUG: Oops, " << _pPluginInfo->getName() << " isn't loaded yet. Loading..." << std::endl;
 
         // This plugin hasn't been loaded yet, so load it.
         return loadPlugin(_pPluginInfo);
@@ -359,7 +360,7 @@ PluginManager::loadPlugin(PluginInfo* const _pPluginInfo)
     else
     {
         // TODO Log Debug
-        std::cout << "DEBUG: Error loading module " << _pPluginInfo->getName() << std::endl;
+        m_pApplication->getLogStream() << "DEBUG: Error loading module " << _pPluginInfo->getName() << std::endl;
     }
 
     return pPlugin;

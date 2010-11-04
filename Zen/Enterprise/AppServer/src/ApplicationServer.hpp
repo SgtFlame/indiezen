@@ -87,6 +87,7 @@ public:
     virtual void installApplication(pApplicationService_type _pApplicationService, pResourceLocation_type _pRootLocation);
     virtual void configureApplication(pApplicationService_type _pApplicationService, pConfig_type _pConfig);
     virtual pApplicationService_type getApplication(pResourceLocation_type _pServiceLocation) const;
+    virtual pApplicationService_type getApplication(const std::string& _serviceLocation) const;
     virtual void getResourceLocations(I_ResourceLocationVisitor& _visitor) const;
     virtual pMessageRegistry_type getMessageRegistry();
     virtual void handleMessage(pMessage_type _pMessage);

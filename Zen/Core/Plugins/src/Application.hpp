@@ -62,6 +62,7 @@ public:
     virtual const std::string& getName() const;
     virtual const std::string& getVersion() const;
     virtual const std::string& getProviderName() const;
+    virtual Utility::log_stream& getLogStream();
     /// @}
 
     /// @name Application implementation
