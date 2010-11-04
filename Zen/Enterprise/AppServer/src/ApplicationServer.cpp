@@ -702,6 +702,16 @@ ApplicationServer::getApplication(pResourceLocation_type _pServiceLocation) cons
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+ApplicationServer::pApplicationService_type
+ApplicationServer::getApplication(const std::string& _serviceLocation) const
+{
+    return getApplication(
+        Zen::Enterprise::AppServer::I_ApplicationServerManager::getSingleton()
+            .createLocation(_serviceLocation)
+    );
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 void
 ApplicationServer::getResourceLocations(I_ResourceLocationVisitor& _visitor) const
 {

@@ -52,6 +52,7 @@
 
 #include <Zen/Enterprise/Database/I_DatabaseService.hpp>
 
+#include <Zen/EnterprisePlugins/Session/SessionServer/I_Session.hpp>
 #include <Zen/EnterprisePlugins/Session/SessionServer/Protocol/I_SessionProtocolManager.hpp>
 #include <Zen/EnterprisePlugins/Session/SessionClient/Protocol/I_LoginRequest.hpp>
 #include <Zen/EnterprisePlugins/Session/SessionClient/Protocol/I_LoginResponse.hpp>

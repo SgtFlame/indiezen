@@ -98,6 +98,13 @@ Application::getProviderName() const
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+Utility::log_stream&
+Application::getLogStream()
+{
+    return m_logStream;
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 bool
 Application::parseConfigurationFile(const boost::filesystem::path& _configFile)
 {

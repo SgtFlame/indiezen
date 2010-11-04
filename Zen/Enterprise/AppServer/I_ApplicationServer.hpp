@@ -166,6 +166,9 @@ public:
     /// Get the application.
     virtual pApplicationService_type getApplication(pResourceLocation_type _pServiceLocation) const = 0;
 
+    /// Get the application by name.
+    virtual pApplicationService_type getApplication(const std::string& _serviceLocation) const = 0;
+
     /// Visit the resource locations.
     virtual void getResourceLocations(I_ResourceLocationVisitor& _visitor) const = 0;
 
