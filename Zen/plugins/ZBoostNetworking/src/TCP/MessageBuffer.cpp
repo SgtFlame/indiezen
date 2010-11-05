@@ -21,7 +21,7 @@
 //
 //  Tony Richards trichards@indiezen.com
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-#include "Message.hpp"
+#include "MessageBuffer.hpp"
 
 #include <climits>
 #include <cstddef>

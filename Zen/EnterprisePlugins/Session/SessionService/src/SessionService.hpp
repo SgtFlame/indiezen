@@ -58,36 +58,37 @@ class SessionService
 :	public Zen::Enterprise::AppServer::scriptable_generic_service
     <Server::I_SessionService, SessionService>
 {
-	/// @name Types
-	/// @{
+    /// @name Types
+    /// @{
 public:
-	/// @}
+    typedef Zen::Memory::managed_ptr<Zen::Enterprise::Session::Protocol::I_LoginResponse> pLoginResponse_type;
+    /// @}
 
-	/// @name I_StartupShutdownParticipant implementation
-	/// @{
+    /// @name I_StartupShutdownParticipant implementation
+    /// @{
 public:
     virtual void setConfiguration(const Zen::Plugins::I_ConfigurationElement& _config);
     virtual Zen::Threading::I_Condition* prepareToStart(Zen::Threading::ThreadPool& _threadPool);
     virtual void start();
     virtual Zen::Threading::I_Condition* prepareToStop();
     virtual void stop();
-	/// @}
+    /// @}
 
-	/// @name I_ScriptableType implementation
-	/// @{
+    /// @name I_ScriptableType implementation
+    /// @{
 public:
     virtual const std::string& getScriptTypeName();
     virtual Scripting::I_ObjectReference* getScriptObject();
-	/// @}
+    /// @}
 
-	/// @name I_ScriptableService implementation
-	/// @{
+    /// @name I_ScriptableService implementation
+    /// @{
 public:
     virtual void registerScriptEngine(pScriptEngine_type _pScriptEngine);
-	/// @}
+    /// @}
 
-	/// @name I_SessionService implemenation
-	/// @{
+    /// @name I_SessionService implemenation
+    /// @{
 public:
     virtual void subscribe(Enterprise::Session::I_Session& _session, pEndpoint_type _pEndpoint, pResourceLocation_type _pLocation);
     virtual void terminateSession(pServerSession_type _pSession);
@@ -97,10 +98,10 @@ public:
                               const std::string& _password);
     virtual void requestLogout(Enterprise::Session::I_Session& _session);
     virtual Event::I_Event& getSessionEvent();
-	/// @}
+    /// @}
 
-	/// @name SessionService implemenation
-	/// @{
+    /// @name SessionService implemenation
+    /// @{
 public:
     pScriptModule_type getScriptModule();
 
@@ -110,7 +111,6 @@ public:
 
     void handleLogoutRequest(pRequest_type _pRequest, pResponseHandler_type);
 
-    typedef Zen::Memory::managed_ptr<Zen::Enterprise::Session::Protocol::I_LoginResponse> pLoginResponse_type;
     void authenticateSession(pEndpoint_type _pEndpoint, 
                              pResourceLocation_type _pLocation, 
                              const std::string& _userId, 
@@ -123,18 +123,18 @@ public:
     void handleAuthenticationTimeoutEvent(boost::uint64_t _authenticationId);
 
     boost::uint64_t generateNativeSessionId();
-	/// @}
+    /// @}
 
-	/// @name 'Structors
-	/// @{
+    /// @name 'Structors
+    /// @{
 protected:
-	friend class SessionServiceFactory;
-			 SessionService(Zen::Enterprise::AppServer::I_ApplicationServer& _appServer);
-	virtual ~SessionService();
-	/// @}
+    friend class SessionServiceFactory;
+             SessionService(Zen::Enterprise::AppServer::I_ApplicationServer& _appServer);
+    virtual ~SessionService();
+    /// @}
 
-	/// @name Member Variables
-	/// @{
+    /// @name Member Variables
+    /// @{
 private:
     pScriptEngine_type                                  m_pScriptEngine;
     Zen::Scripting::script_module*                      m_pScriptModule;
@@ -155,18 +155,17 @@ private:
     typedef Zen::Memory::managed_ptr<Zen::Enterprise::Account::Client::I_AccountService>    pClientAccountService_type;
     pClientAccountService_type                          m_pClientAccountService;
 
-    typedef Zen::Memory::managed_ptr<Zen::Enterprise::Session::Protocol::I_LoginResponse>   pLoginResponse_type;
     typedef std::pair<pLoginResponse_type,pResponseHandler_type>                            LoginResponseHandlerPair_type;
     typedef std::map<boost::uint64_t, LoginResponseHandlerPair_type>                        LoginResponseMap_type;
     LoginResponseMap_type                               m_loginResponseMap;
-	/// @}
+    /// @}
 };
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-}	// namespace Service
-}	// namespace Session
-}	// namespace Enterprise
-}	// namespace Zen
+}   // namespace Service
+}   // namespace Session
+}   // namespace Enterprise
+}   // namespace Zen
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 
 #endif // ZEN_ENTERPRISE_SESSION_SERVICE_SESSION_SERVICE_HPP_INCLUDED
