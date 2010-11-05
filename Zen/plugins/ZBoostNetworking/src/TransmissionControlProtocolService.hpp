@@ -25,7 +25,7 @@
 #define ZEN_ENTERPRISE_APPSERVER_TCP_PROTOCOL_SERVICE_HPP_INCLUDED
 
 #include "TCP/Connection.hpp"
-#include "TCP/Message.hpp"
+#include "TCP/MessageBuffer.hpp"
 
 #include <Zen/Core/Memory/managed_ptr.hpp>
 #include <Zen/Core/Memory/managed_weak_ptr.hpp>

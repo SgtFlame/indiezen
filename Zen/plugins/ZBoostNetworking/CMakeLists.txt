@@ -100,8 +100,8 @@ set ( ZBoostNetworking_SRC
     src/ProtocolServiceFactory.hpp
     src/TCP/Connection.cpp
     src/TCP/Connection.hpp
-    src/TCP/Message.cpp
-    src/TCP/Message.hpp
+    src/TCP/MessageBuffer.cpp
+    src/TCP/MessageBuffer.hpp
     src/TransmissionControlProtocolService.cpp
     src/TransmissionControlProtocolService.hpp
     src/UDP/Address.cpp

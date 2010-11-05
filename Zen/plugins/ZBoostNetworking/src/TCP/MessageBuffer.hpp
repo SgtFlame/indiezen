@@ -37,7 +37,6 @@ namespace TCP {
 /// Not an I_Message.
 /// This message is used to store the message before it's decoded
 /// or after it's been encoded.
-/// @todo Rename this to MessageBuffer.hpp
 class MessageBuffer
 {
 public:

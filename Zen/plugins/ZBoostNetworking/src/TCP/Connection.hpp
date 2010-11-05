@@ -23,7 +23,7 @@
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 #ifndef ZEN_ENTERPRISE_APPSERVER_TCP_CONNECTION_HPP_INCLUDED
 #define ZEN_ENTERPRISE_APPSERVER_TCP_CONNECTION_HPP_INCLUDED
-#include "Message.hpp"
+#include "MessageBuffer.hpp"
 
 #include <Zen/Core/Memory/managed_ptr.hpp>
 
@@ -31,6 +31,8 @@
 
 #include <boost/asio.hpp>
 #include <boost/array.hpp>
+
+#include <list>
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 namespace Zen {
@@ -121,7 +123,7 @@ private:
 
     MessageBuffer       m_readMessage;
 
-    typedef std::list<MessageBuffer*>   MessageQueue_type;
+    typedef std::list<Zen::Enterprise::AppServer::TCP::MessageBuffer*>   MessageQueue_type;
     Threading::I_Mutex*                 m_pWriteQueueGuard;
     MessageQueue_type                   m_writeMessages;
     /// @}
