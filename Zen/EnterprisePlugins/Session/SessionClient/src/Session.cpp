@@ -48,33 +48,33 @@ Session::Session()
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-Session::Session(const Session& _session)
-:   m_pEndpoint(_session.m_pEndpoint)
-,   m_pLocation(_session.m_pLocation)
-,   m_sessionId(_session.m_sessionId)
-,   m_sessionState(_session.m_sessionState)
+Session::Session(const Enterprise::Session::I_Session& _session)
+:   m_pEndpoint(_session.getEndpoint())
+,   m_pLocation(_session.getLocation())
+,   m_sessionId(_session.getSessionId())
+,   m_sessionState(_session.getSessionState())
 ,   m_pScriptObject(NULL)
-,   I_Session(_session)
+,   I_Session()
 {
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 Session::Session(pEndpoint_type _pDestination)
-:	m_pEndpoint(_pDestination)
+:   m_pEndpoint(_pDestination)
 ,   m_pLocation()
-,	m_sessionId(new NativeSessionId())
-,	m_sessionState(I_Session::INITIALIZED)
-,	m_pScriptObject(NULL)
+,   m_sessionId(new NativeSessionId())
+,   m_sessionState(I_Session::INITIALIZED)
+,   m_pScriptObject(NULL)
 {
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 Session::Session(pEndpoint_type _pDestination, pResourceLocation_type _pLocation)
-:	m_pEndpoint(_pDestination)
+:   m_pEndpoint(_pDestination)
 ,   m_pLocation(_pLocation)
-,	m_sessionId(new NativeSessionId())
-,	m_sessionState(I_Session::INITIALIZED)
-,	m_pScriptObject(NULL)
+,   m_sessionId(new NativeSessionId())
+,   m_sessionState(I_Session::INITIALIZED)
+,   m_pScriptObject(NULL)
 {
 }
 
@@ -87,21 +87,21 @@ Session::~Session()
 Session::SessionState_type
 Session::getSessionState() const
 {
-	return m_sessionState;
+    return m_sessionState;
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 int
 Session::scriptGetSessionState()
 {
-	return static_cast<int>(getSessionState());
+    return static_cast<int>(getSessionState());
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 const Session::pEndpoint_type
 Session::getEndpoint() const
 {
-	return m_pEndpoint;
+    return m_pEndpoint;
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
@@ -226,8 +226,8 @@ Session::NativeSessionId::serialize(boost::archive::polymorphic_oarchive& _archi
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-}	// namespace Client
-}	// namespace Session
-}	// namespace Enterprise
-}	// namespace Zen
+}   // namespace Client
+}   // namespace Session
+}   // namespace Enterprise
+}   // namespace Zen
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~

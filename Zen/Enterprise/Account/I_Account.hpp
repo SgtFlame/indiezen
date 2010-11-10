@@ -45,26 +45,26 @@ class ACCOUNT_DLL_LINK I_Account
 :   public Zen::Memory::managed_self_ref<I_Account>
 ,   public Zen::Scripting::I_ScriptableType
 {
-	/// @name Types
-	/// @{
+    /// @name Types
+    /// @{
 public:
     struct AccountId;
 
     typedef Zen::Memory::managed_ptr<I_Account>                 pScriptObject_type;
     typedef Zen::Scripting::ObjectReference<I_Account>          ScriptObjectReference_type;
-	/// @}
+    /// @}
 
-	/// @name I_ScriptableType implementation
-	/// @{
+    /// @name I_ScriptableType implementation
+    /// @{
 public:
-	virtual const std::string& getScriptTypeName();
-	/// @}
+    virtual const std::string& getScriptTypeName();
+    /// @}
 
-	/// @name I_Account interface
-	/// @{
+    /// @name I_Account interface
+    /// @{
 public:
     virtual const Enterprise::Account::I_Account::AccountId& getAccountId() const = 0;
-	/// @}
+    /// @}
 
     /// @name Inner Classes
     /// @{
@@ -144,23 +144,23 @@ public:
     /// @name 'Structors
 	/// @{
 protected:
-			 I_Account();
+             I_Account();
              I_Account(const I_Account& _account);
-	virtual ~I_Account();
-	/// @}
+    virtual ~I_Account();
+    /// @}
 
-};	// interface I_Account
+};  // interface I_Account
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-}	// namespace Account
-}	// namespace Enterprise
+}   // namespace Account
+}   // namespace Enterprise
 namespace Memory {
-	// I_Account is managed by factory
-	template<>
-	struct is_managed_by_factory<Zen::Enterprise::Account::I_Account>
-	:	public boost::true_type{};
-}	// namespace Memory
-}	// namespace Zen
+    // I_Account is managed by factory
+    template<>
+    struct is_managed_by_factory<Zen::Enterprise::Account::I_Account>
+    :   public boost::true_type{};
+}   // namespace Memory
+}   // namespace Zen
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 
 #endif // ZEN_ENTERPRISE_ACCOUNT_I_ACCOUNT_HPP_INCLUDED

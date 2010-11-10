@@ -53,6 +53,14 @@ Account::Account(const Account& _account)
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+Account::Account(const Enterprise::Account::I_Account& _account)
+:   m_accountId(_account.getAccountId())
+,   m_userId("")
+,   I_Account()
+{
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 Account::~Account()
 {
 }

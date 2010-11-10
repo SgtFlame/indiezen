@@ -44,53 +44,53 @@ namespace Client {
 /// @see I_ApplicationServer::getApplication() to get an instance of an
 ///     implementation of this interface.
 class SESSION_CLIENT_DLL_LINK I_SessionService
-:	public Zen::Enterprise::Session::I_SessionService
+:   public Zen::Enterprise::Session::I_SessionService
 {
 
-	/// @name Types
-	/// @{
+    /// @name Types
+    /// @{
 public:
-	typedef Zen::Memory::managed_ptr<Zen::Networking::I_Endpoint>	pEndpoint_type;
-	/// @}
+    typedef Zen::Memory::managed_ptr<Zen::Networking::I_Endpoint>	pEndpoint_type;
+    /// @}
 
-	/// @name I_SessionService interface
-	/// @{
+    /// @name I_SessionService interface
+    /// @{
 public:
-	/// Request a login.
-	/// When the session is connected (or rejected) the session event is
-	/// fired.
-	/// @see getSessionEvent().
-	virtual void requestLogin(pEndpoint_type _pDestinationEndpoint,
-                              pResourceLocation_type _pDestLocation,
-							  const std::string& _name,
-							  const std::string& _password) = 0;
+    /// Request a login.
+    /// When the session is connected (or rejected) the session event is
+    /// fired.
+    /// @see getSessionEvent().
+    virtual boost::uint64_t requestLogin(pEndpoint_type _pDestinationEndpoint,
+                                         pResourceLocation_type _pDestLocation,
+                                         const std::string& _name,
+                                         const std::string& _password) = 0;
 
     /// Request a logout.
     /// When the session is disconnected, the session event is fired.
     /// @see getSessionEvent().
     virtual void requestLogout(Enterprise::Session::I_Session& _session) = 0;
-	/// @}
+    /// @}
 
-	/// @name 'Structors
-	/// @{
+    /// @name 'Structors
+    /// @{
 protected:
-			 I_SessionService();
-	virtual ~I_SessionService();
-	/// @}
+             I_SessionService();
+    virtual ~I_SessionService();
+    /// @}
 
-};	// interface I_SessionService
+};  // interface I_SessionService
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-}	// namespace Client
-}	// namespace Session
-}	// namespace Enterprise
+}   // namespace Client
+}   // namespace Session
+}   // namespace Enterprise
 namespace Memory {
-	/// I_SessionService is managed by factory
-	template<>
+/// I_SessionService is managed by factory
+    template<>
     struct is_managed_by_factory<Zen::Enterprise::Session::Client::I_SessionService>
-	:	public boost::true_type{};
-}	// namespace Memory
-}	// namespace Zen
+    :   public boost::true_type{};
+}   // namespace Memory
+}   // namespace Zen
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 
 #endif // ZEN_ENTERPRISE_SESSION_CLIENT_I_SESSION_SERVICE_HPP_INCLUDED

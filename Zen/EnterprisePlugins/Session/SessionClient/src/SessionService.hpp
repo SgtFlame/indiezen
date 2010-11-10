@@ -52,55 +52,55 @@ namespace Client {
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 
 class SessionService
-:	public Zen::Enterprise::AppServer::scriptable_generic_service
-	<I_SessionService, SessionService>
+:   public Zen::Enterprise::AppServer::scriptable_generic_service
+    <I_SessionService, SessionService>
 {
-	/// @name Types
-	/// @{
+    /// @name Types
+    /// @{
 public:
     /// For now pSession_type is a raw pointer.
     /// The session is never destroyed until the system is shutdown
     /// or a logout occurs.
     typedef Enterprise::Session::I_Session*             pSession_type;
     typedef std::set<pSession_type>                     Sessions_type;
-	/// @}
+    /// @}
 
-	/// @name I_StartupShutdownParticipant implementation
-	/// @{
+    /// @name I_StartupShutdownParticipant implementation
+    /// @{
 public:
     virtual void setConfiguration(const Zen::Plugins::I_ConfigurationElement& _config);
     virtual Zen::Threading::I_Condition* prepareToStart(Zen::Threading::ThreadPool& _threadPool);
     virtual void start();
     virtual Zen::Threading::I_Condition* prepareToStop();
     virtual void stop();
-	/// @}
+    /// @}
 
-	/// @name I_ScriptableType implementation
-	/// @{
+    /// @name I_ScriptableType implementation
+    /// @{
 public:
     virtual const std::string& getScriptTypeName();
     virtual Scripting::I_ObjectReference* getScriptObject();
-	/// @}
+    /// @}
 
-	/// @name I_ScriptableService implementation
-	/// @{
+    /// @name I_ScriptableService implementation
+    /// @{
 public:
     virtual void registerScriptEngine(pScriptEngine_type _pScriptEngine);
-	/// @}
+    /// @}
 
-	/// @name I_SessionService implemenation
-	/// @{
+    /// @name I_SessionService implemenation
+    /// @{
 public:
-    virtual void requestLogin(pEndpoint_type _pDestinationEndpoint, 
-                              pResourceLocation_type _pDestLocation,
-                              const std::string& _name, 
-                              const std::string& _password);
+    virtual boost::uint64_t requestLogin(pEndpoint_type _pDestinationEndpoint, 
+                                         pResourceLocation_type _pDestLocation,
+                                         const std::string& _name, 
+                                         const std::string& _password);
     virtual void requestLogout(Enterprise::Session::I_Session& _session);
     virtual Event::I_Event& getSessionEvent();
-	/// @}
+    /// @}
 
-	/// @name SessionService implemenation
-	/// @{
+    /// @name SessionService implemenation
+    /// @{
 public:
     pScriptModule_type getScriptModule();
 
@@ -108,24 +108,24 @@ public:
     void scriptLogin(const std::string& _server, const std::string& _port, const std::string& _location, const std::string& _name, const std::string& _password);
 
     typedef Zen::Enterprise::Session::Protocol::I_LoginResponse::pResponse_type pLoginResponse_type;
-    void handleLoginResponse(pResponse_type _pResponse, Zen::Enterprise::Session::Protocol::I_LoginRequest& _request, pSession_type _pSession);
+    void handleLoginResponse(pResponse_type _pResponse, Zen::Enterprise::Session::Protocol::I_LoginRequest& _request, void* _nullPtr);
 
     typedef Zen::Enterprise::Session::Protocol::I_LogoutResponse::pResponse_type pLogoutResponse_type;
     void handleLogoutResponse(pResponse_type _pResponse, Zen::Enterprise::Session::Protocol::I_LogoutRequest& _request, pSession_type _pSession);
 
     void handleOnDisconnected(boost::any _anyEndpoint);
-	/// @}
+    /// @}
 
-	/// @name 'Structors
-	/// @{
+    /// @name 'Structors
+    /// @{
 protected:
-	friend class SessionServiceFactory;
-			 SessionService(Zen::Enterprise::AppServer::I_ApplicationServer& _appServer);
-	virtual ~SessionService();
-	/// @}
+    friend class SessionServiceFactory;
+             SessionService(Zen::Enterprise::AppServer::I_ApplicationServer& _appServer);
+    virtual ~SessionService();
+    /// @}
 
-	/// @name Member Variables
-	/// @{
+    /// @name Member Variables
+    /// @{
 private:
     pScriptEngine_type                                  m_pScriptEngine;
     Zen::Scripting::script_module*                      m_pScriptModule;
@@ -142,14 +142,14 @@ private:
 
     typedef std::map<std::string, pEndpoint_type>       AddressIndex_type;
     AddressIndex_type                                   m_addressIndex;
-	/// @}
+    /// @}
 };
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-}	// namespace Client
-}	// namespace Session
-}	// namespace Enterprise
-}	// namespace Zen
+}   // namespace Client
+}   // namespace Session
+}   // namespace Enterprise
+}   // namespace Zen
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 
 #endif // ZEN_ENTERPRISE_SESSION_CLIENT_SESSION_SERVICE_HPP_INCLUDED

@@ -221,10 +221,15 @@ AccountService::handleAuthenticateResponse(pResponse_type _pResponse, Zen::Enter
     Zen::Enterprise::Account::Protocol::I_AuthenticateResponse* pResponse =
         dynamic_cast<Zen::Enterprise::Account::Protocol::I_AuthenticateResponse*>(_pResponse.get());
 
+    pAccount_type pAccount(
+        new Account(pResponse->getAccount()),
+        destroyAccount
+    );
+
     Enterprise::Account::I_AccountService::AuthenticationPayload payload(
         pResponse->getRequestMessageId(),
         pResponse->getAuthenticated(),
-        pResponse->getAccount()
+        pAccount
     );
 
     // Notify that the account status has changed.

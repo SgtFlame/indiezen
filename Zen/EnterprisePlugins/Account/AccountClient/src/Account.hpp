@@ -45,18 +45,18 @@ namespace Client {
 class Account
 :   public Zen::Enterprise::Account::Client::I_Account
 {
-	/// @name Types
-	/// @{
+    /// @name Types
+    /// @{
 public:
-	typedef ScriptObjectReference_type						ScriptWrapper_type;
-	typedef ScriptWrapper_type*								pScriptWrapper_type;
-	/// @}
+    typedef ScriptObjectReference_type                      ScriptWrapper_type;
+    typedef ScriptWrapper_type*                             pScriptWrapper_type;
+    /// @}
 
-	/// @name I_ScriptableType implementation
-	/// @{
+    /// @name I_ScriptableType implementation
+    /// @{
 public:
-	virtual Zen::Scripting::I_ObjectReference* getScriptObject();
-	/// @}
+    virtual Zen::Scripting::I_ObjectReference* getScriptObject();
+    /// @}
 
     /// @name I_Account implementation
     /// @{
@@ -118,17 +118,18 @@ public:
     };  // class NativeAccountId
     /// @}
 
-	/// @name Static Methods
-	/// @{
+    /// @name Static Methods
+    /// @{
 public:
-	static void registerScriptModule(Zen::Scripting::script_module& _module);
-	/// @}
+    static void registerScriptModule(Zen::Scripting::script_module& _module);
+    /// @}
 
     /// @name 'Structors
     /// @{
 public:
              Account();
              Account(const Account& _account);
+             Account(const Zen::Enterprise::Account::I_Account& _account);
     virtual ~Account();
     /// @}
 
@@ -138,7 +139,7 @@ private:
     AccountId               m_accountId;
     std::string             m_userId;
 
-	pScriptWrapper_type		m_pScriptObject;
+    pScriptWrapper_type		m_pScriptObject;
     /// @}
 
 };  // class Account

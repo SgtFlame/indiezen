@@ -39,19 +39,19 @@
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 namespace Zen {
-	namespace Networking {
-		class I_Endpoint;
-	}	// namespace Networking
+    namespace Networking {
+        class I_Endpoint;
+    }   // namespace Networking
 namespace Enterprise {
 namespace Session {
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 
 class ZENSESSION_DLL_LINK I_Session
 :   public Zen::Memory::managed_self_ref<I_Session>
-,	public Zen::Scripting::I_ScriptableType
+,   public Zen::Scripting::I_ScriptableType
 {
-	/// @name Types
-	/// @{
+    /// @name Types
+    /// @{
 public:
     enum SessionState_type
     {
@@ -63,21 +63,21 @@ public:
 
     struct SessionId;
 
-	typedef Zen::Memory::managed_ptr<Zen::Networking::I_Endpoint>		                pEndpoint_type;
+    typedef Zen::Memory::managed_ptr<Zen::Networking::I_Endpoint>                       pEndpoint_type;
     typedef Zen::Memory::managed_ptr<Zen::Enterprise::AppServer::I_ResourceLocation>    pResourceLocation_type;
 
-	typedef Zen::Memory::managed_ptr<I_Session>				            pScriptObject_type;
-	typedef Zen::Scripting::ObjectReference<I_Session>		            ScriptObjectReference_type;
+    typedef Zen::Memory::managed_ptr<I_Session>                         pScriptObject_type;
+    typedef Zen::Scripting::ObjectReference<I_Session>                  ScriptObjectReference_type;
     /// @}
 
-	/// @name I_ScriptableType implementation
-	/// @{
+    /// @name I_ScriptableType implementation
+    /// @{
 public:
-	virtual const std::string& getScriptTypeName();
-	/// @}
+    virtual const std::string& getScriptTypeName();
+    /// @}
 
-	/// @name I_Session interface
-	/// @{
+    /// @name I_Session interface
+    /// @{
 public:
     /// Get the session state.
     virtual SessionState_type getSessionState() const = 0;
@@ -90,7 +90,7 @@ public:
 
     /// Get the session Id.
     virtual const SessionId& getSessionId() const = 0;
-	/// @}
+    /// @}
 
     /// @name Inner Classes
     /// @{
@@ -167,26 +167,26 @@ public:
     };  // struct SessionId
     /// @}
 
-	/// @name 'Structors
-	/// @{
+    /// @name 'Structors
+    /// @{
 protected:
-			 I_Session();
+             I_Session();
              I_Session(const I_Session& _session);
-	virtual ~I_Session();
-	/// @}
+    virtual ~I_Session();
+    /// @}
 
-};	// interface I_Session
+};  // interface I_Session
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-}	// namespace Session
-}	// namespace Enterprise
+}   // namespace Session
+}   // namespace Enterprise
 namespace Memory {
-	// I_Session is managed by factory
-	template<>
-	struct is_managed_by_factory<Zen::Enterprise::Session::I_Session>
-	:	public boost::true_type{};
-}	// namespace Memory
-}	// namespace Zen
+    // I_Session is managed by factory
+    template<>
+    struct is_managed_by_factory<Zen::Enterprise::Session::I_Session>
+    :   public boost::true_type{};
+}   // namespace Memory
+}   // namespace Zen
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 
 #endif // ZEN_ENTERPRISE_SESSION_I_SESSION_HPP_INCLUDED

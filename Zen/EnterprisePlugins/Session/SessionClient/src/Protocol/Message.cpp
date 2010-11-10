@@ -78,7 +78,7 @@ Message::getSourceLocation() const
 {
     return Zen::Enterprise::AppServer::I_ApplicationServerManager::getSingleton()
         .createLocation(
-            getMessageHeader()->getDestinationLocation()
+            getMessageHeader()->getSourceLocation()
         );
 }
 

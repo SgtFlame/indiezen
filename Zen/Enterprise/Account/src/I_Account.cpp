@@ -36,7 +36,7 @@ I_Account::I_Account()
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-I_Account::I_Account(const I_Account& _session)
+I_Account::I_Account(const I_Account& _account)
 {
 }
 
@@ -55,7 +55,7 @@ I_Account::getScriptTypeName()
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-}	// namespace Account
-}	// namespace Enterprise
-}	// namespace Zen
+}   // namespace Account
+}   // namespace Enterprise
+}   // namespace Zen
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~

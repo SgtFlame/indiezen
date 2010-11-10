@@ -163,41 +163,22 @@ SessionService::stop()
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-void
+boost::uint64_t
 SessionService::requestLogin(pEndpoint_type _pDestinationEndpoint,
                              pResourceLocation_type _pDestLocation,
                              const std::string& _name,
                              const std::string& _password)
 {
-    // Create a new local Session object for storing the session state.
-    Session* pSession;
-
-    // TODO Guard
-    // Create a map of destination endpoint to session.
-    EndpointIndex_type::iterator iter = m_endpointIndex.find(_pDestinationEndpoint);
-
-    if(iter == m_endpointIndex.end())
-    {
-        // For now this is assuming one session per endpoint but that
-        // is a bad assumption.
-        // TODO Improve this logic so that it's one session per endpoint + name
-        pSession = new Session(_pDestinationEndpoint);
-        m_endpointIndex[_pDestinationEndpoint] = pSession;
-    }
-    else
-    {
-        pSession = dynamic_cast<Session*>(iter->second);
-    }
-
-    // Create a login request using pSession as the payload.
-    Zen::Enterprise::AppServer::create_request<Zen::Enterprise::Session::Protocol::I_LoginRequest, Session*>
-        request(_pDestinationEndpoint, pSession, getServiceLocation(), _pDestLocation);
+    Zen::Enterprise::AppServer::create_request<Zen::Enterprise::Session::Protocol::I_LoginRequest, void*>
+        request(_pDestinationEndpoint, NULL, getServiceLocation(), _pDestLocation);
 
     request->setUserId(_name);
     request->setPassword(_password);
 
-    send<Zen::Enterprise::Session::Protocol::I_LoginRequest, Session*>
+    send<Zen::Enterprise::Session::Protocol::I_LoginRequest, void*>
         (request, boost::bind(&SessionService::handleLoginResponse, this, _1, _2, _3));
+
+    return request->getMessageId();
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
@@ -252,7 +233,7 @@ SessionService::scriptLogin(const std::string& _server, const std::string& _port
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 void
-SessionService::handleLoginResponse(pResponse_type _pResponse, Zen::Enterprise::Session::Protocol::I_LoginRequest& _request, pSession_type _pSession)
+SessionService::handleLoginResponse(pResponse_type _pResponse, Zen::Enterprise::Session::Protocol::I_LoginRequest& _request, void* _nullPtr)
 {
     // _pSession is the payload associated with the original _request.
     // Handle this response.
@@ -262,16 +243,12 @@ SessionService::handleLoginResponse(pResponse_type _pResponse, Zen::Enterprise::
 
     // TODO Create an index of sessionId to Session*
     // Hack?
-    if (pResponse->getSession().getSessionState() == Zen::Enterprise::Session::I_Session::CONNECTED)
-    {
-        *_pSession = pResponse->getSession();
-        
-        // TODO Guard
-        m_sessionIdIndex[_pSession->getSessionId()] = _pSession;
-    }
+    pSession_type pSession = new Session(pResponse->getSession());
+
+    m_sessionIdIndex[pSession->getSessionId()] = pSession;
 
     // Notify that the session status has changed.
-    boost::any anySession(_pSession);
+    boost::any anySession(pSession);
     getSessionEvent().fireEvent(anySession);
 }
 

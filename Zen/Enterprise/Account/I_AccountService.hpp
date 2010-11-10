@@ -66,12 +66,16 @@ public:
 public:
     struct AuthenticationPayload
     {
+        typedef Zen::Memory::managed_ptr<I_Account> pAccount_type;
+
         boost::uint64_t     m_id;
         bool                m_authenticated;
-        const I_Account&    m_account;
+        const pAccount_type m_pAccount;
 
-        AuthenticationPayload(boost::uint64_t _id, bool _authenticated, const I_Account& _account) : m_id(_id), m_authenticated(_authenticated), m_account(_account)
-        {}
+        AuthenticationPayload(boost::uint64_t _id, bool _authenticated, const pAccount_type _pAccount) : m_id(_id), m_authenticated(_authenticated), m_pAccount(_pAccount)
+        {
+            return;
+        }
     };  // struct AuthenticationPayload
     /// @|
 
