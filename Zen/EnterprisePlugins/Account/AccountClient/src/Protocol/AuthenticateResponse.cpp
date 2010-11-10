@@ -104,12 +104,12 @@ AuthenticateResponse::getAccount() const
 void
 AuthenticateResponse::setAccount(const Enterprise::Account::I_Account& _account)
 {
-    const Enterprise::Account::Client::Account* pAccount =
-        dynamic_cast<const Enterprise::Account::Client::Account*>(&_account);
+    const Enterprise::Account::Client::I_Account* pAccount =
+        dynamic_cast<const Enterprise::Account::Client::I_Account*>(&_account);
 
     if (pAccount != NULL)
     {
-        m_account = *pAccount;
+        m_account = Enterprise::Account::Client::Account(*pAccount);
     }
     else
     {

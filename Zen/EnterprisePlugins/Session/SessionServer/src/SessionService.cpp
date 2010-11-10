@@ -164,7 +164,7 @@ SessionService::terminateSession(pServerSession_type _pSession)
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-void
+boost::uint64_t
 SessionService::requestLogin(pEndpoint_type _pDestinationEndpoint,
                              pResourceLocation_type _pDestLocation,
                              const std::string& _name,
@@ -172,13 +172,15 @@ SessionService::requestLogin(pEndpoint_type _pDestinationEndpoint,
 {
     if (m_pClientSessionService.isValid())
     {
-        m_pClientSessionService->requestLogin(
+        return m_pClientSessionService->requestLogin(
             _pDestinationEndpoint,
             _pDestLocation,
             _name,
             _password
         );
     }
+
+    return 0;
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~

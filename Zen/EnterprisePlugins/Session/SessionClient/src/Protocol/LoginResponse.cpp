@@ -101,17 +101,7 @@ LoginResponse::getSession() const
 void
 LoginResponse::setSession(const Enterprise::Session::I_Session& _session)
 {
-    const Enterprise::Session::Client::Session* pSession = 
-        dynamic_cast<const Enterprise::Session::Client::Session*>(&_session);
-
-    if (pSession != NULL)
-    {
-        m_session = *pSession;
-    }
-    else
-    {
-        // TODO Throw exception?
-    }
+    m_session = Enterprise::Session::Client::Session(_session);
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~

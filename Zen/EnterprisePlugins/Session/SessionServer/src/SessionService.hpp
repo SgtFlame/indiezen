@@ -87,10 +87,10 @@ public:
 public:
     virtual void subscribe(Enterprise::Session::I_Session& _session, pEndpoint_type _pEndpoint, pResourceLocation_type _pLocation);
     virtual void terminateSession(pServerSession_type _pSession);
-    virtual void requestLogin(pEndpoint_type _pDestinationEndpoint, 
-                              pResourceLocation_type _pDestLocation,
-                              const std::string& _name, 
-                              const std::string& _password);
+    virtual boost::uint64_t requestLogin(pEndpoint_type _pDestinationEndpoint, 
+                                         pResourceLocation_type _pDestLocation,
+                                         const std::string& _name, 
+                                         const std::string& _password);
     virtual void requestLogout(Enterprise::Session::I_Session& _session);
     virtual Event::I_Event& getSessionEvent();
 	/// @}

@@ -43,37 +43,37 @@ namespace Client {
 /// Session.
 /// This represents a stateful session.
 class Session
-:	public Zen::Enterprise::Session::Client::I_Session
+:   public Zen::Enterprise::Session::Client::I_Session
 {
-	/// @name Types
-	/// @{
+    /// @name Types
+    /// @{
 public:
-	typedef ScriptObjectReference_type						ScriptWrapper_type;
-	typedef ScriptWrapper_type*								pScriptWrapper_type;
-	/// @}
+    typedef ScriptObjectReference_type						ScriptWrapper_type;
+    typedef ScriptWrapper_type*								pScriptWrapper_type;
+    /// @}
 
-	/// @name I_ScriptableType implementation
-	/// @{
+    /// @name I_ScriptableType implementation
+    /// @{
 public:
-	virtual Zen::Scripting::I_ObjectReference* getScriptObject();
-	/// @}
+    virtual Zen::Scripting::I_ObjectReference* getScriptObject();
+    /// @}
 
-	/// @name I_Session implemenation
-	/// @{
+    /// @name I_Session implemenation
+    /// @{
 public:
-	virtual SessionState_type getSessionState() const;
-	virtual const pEndpoint_type getEndpoint() const;
+    virtual SessionState_type getSessionState() const;
+    virtual const pEndpoint_type getEndpoint() const;
     virtual const pResourceLocation_type getLocation() const;
     virtual const SessionId& getSessionId() const;
-	/// @}
+    /// @}
 
-	/// @name Session implementation
-	/// @{
+    /// @name Session implementation
+    /// @{
 public:
     int scriptGetSessionState();
     void serialize(boost::archive::polymorphic_iarchive& _archive, const int _version);
     void serialize(boost::archive::polymorphic_oarchive& _archive, const int _version);
-	/// @}
+    /// @}
 
     /// @name Inner classes
     /// @{
@@ -121,41 +121,41 @@ public:
     };  // class NativeSessionId
     /// @}
 
-	/// @name Static Methods
-	/// @{
+    /// @name Static Methods
+    /// @{
 public:
-	static void registerScriptModule(Zen::Scripting::script_module& _module);
-	/// @}
+    static void registerScriptModule(Zen::Scripting::script_module& _module);
+    /// @}
 
-	/// @name 'Structors
-	/// @{
+    /// @name 'Structors
+    /// @{
 public:
              Session();
-             Session(const Session& _session);
+             Session(const Zen::Enterprise::Session::I_Session& _session);
              Session(pEndpoint_type _pDestination);
-			 Session(pEndpoint_type _pDestination, pResourceLocation_type _pLocation);
-	virtual ~Session();
-	/// @}
+             Session(pEndpoint_type _pDestination, pResourceLocation_type _pLocation);
+    virtual ~Session();
+    /// @}
 
-	/// @name Member Variables
-	/// @{
+    /// @name Member Variables
+    /// @{
 private:
-	pEndpoint_type				m_pEndpoint;
+    pEndpoint_type              m_pEndpoint;
     pResourceLocation_type      m_pLocation;
 
-	SessionId				    m_sessionId;
-	SessionState_type			m_sessionState;
+    SessionId                   m_sessionId;
+    SessionState_type           m_sessionState;
 
-	pScriptWrapper_type			m_pScriptObject;
-	/// @}
+    pScriptWrapper_type         m_pScriptObject;
+    /// @}
 
-};	// class Session
+};  // class Session
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-}	// namespace Client
-}	// namespace Session
-}	// namespace Enterprise
-}	// namespace Zen
+}   // namespace Client
+}   // namespace Session
+}   // namespace Enterprise
+}   // namespace Zen
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 
 #endif // ZEN_ENTERPRISE_SESSION_CLIENT_SESSION_HPP_INCLUDED

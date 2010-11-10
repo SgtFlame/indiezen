@@ -76,6 +76,7 @@ SessionService::SessionService(Zen::Enterprise::AppServer::I_ApplicationServer& 
 :   Zen::Enterprise::AppServer::scriptable_generic_service<Zen::Enterprise::Session::Server::I_SessionService, SessionService>(_appServer)
 ,   m_pScriptObject(NULL)
 ,   m_pSesssionIdMutex(Threading::MutexFactory::create())
+,   m_lastSessionId(0)
 {
 }
 
@@ -334,17 +335,20 @@ SessionService::handleAuthenticationEvent(boost::any& _payload)
         pLoginResponse_type pResponse = iter->second.first;
         pResponseHandler_type pResponseHandler = iter->second.second;
 
-        if (payload.m_authenticated)
-        {
-            Session* pSession = new Session(
-                generateNativeSessionId(),
-                pResponse->getSourceEndpoint(),
-                pResponse->getSourceLocation(),
-                Zen::Enterprise::Session::I_Session::CONNECTED
-            );
+        Zen::Enterprise::Session::I_Session::SessionState_type state =
+            payload.m_authenticated ? Zen::Enterprise::Session::I_Session::CONNECTED : 
+                Zen::Enterprise::Session::I_Session::NOT_AUTHORIZED;
 
+        Session session(
+            generateNativeSessionId(),
+            pResponse->getSourceEndpoint(),
+            pResponse->getSourceLocation(),
+            state
+        );
+
+        {
             Zen::Threading::CriticalSection guard(m_pSesssionIdMutex);
-            Session::SessionId sessionId = pSession->getSessionId();
+            Session::SessionId sessionId = session.getSessionId();
             Session::NativeSessionId* pNative =
                 dynamic_cast<Session::NativeSessionId*>(sessionId.m_pNativeSessionId);
             assert(pNative != NULL);
@@ -358,10 +362,10 @@ SessionService::handleAuthenticationEvent(boost::any& _payload)
 
             pSessionObject_type pSessionObject = pSessionDM->createNew();
             pSessionObject->getSessionId() = pNative->getRawSessionId();
-            pSessionObject->getAccountId() = payload.m_account.getAccountId().toString();
+            pSessionObject->getAccountId() = payload.m_pAccount->getAccountId().toString();
             pSessionObject->getEndpoint() = pResponse->getDestinationEndpoint()->toString();
             pSessionObject->getLocation() = pResponse->getDestinationLocation()->toString();
-            pSessionObject->getStatus() = pSession->getSessionState();
+            pSessionObject->getStatus() = session.getSessionState();
             /// TODO Figure out why the following line is generating boost related linker errors.
             //pSessionObject->getStartTime() = boost::posix_time::to_simple_string(boost::posix_time::ptime(boost::posix_time::second_clock::universal_time()));
             pSessionObject->getEndTime() = std::string();
@@ -370,16 +374,7 @@ SessionService::handleAuthenticationEvent(boost::any& _payload)
 
             m_sessionsMap[pNative->getRawSessionId()] = pSessionObject;
 
-            pResponse->setSession(*pSession);
-        }
-        else
-        {
-            Session* pSession = new Session(
-                0,
-                pResponse->getSourceEndpoint(),
-                pResponse->getSourceLocation(),
-                Zen::Enterprise::Session::I_Session::NOT_AUTHORIZED
-            );
+            pResponse->setSession(session);
         }
 
         // Handle the response.
@@ -411,7 +406,7 @@ SessionService::handleAuthenticationTimeoutEvent(boost::uint64_t _authentication
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-void
+boost::uint64_t
 SessionService::requestLogin(pEndpoint_type _pDestinationEndpoint,
                              pResourceLocation_type _pDestLocation,
                              const std::string& _name,

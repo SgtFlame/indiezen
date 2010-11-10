@@ -55,6 +55,8 @@
 #include <Zen/EnterprisePlugins/Account/AccountClient/Protocol/I_AuthenticateRequest.hpp>
 #include <Zen/EnterprisePlugins/Account/AccountClient/Protocol/I_AuthenticateResponse.hpp>
 
+#include <Zen/EnterprisePlugins/Account/AccountServer/I_Account.hpp>
+
 #include <boost/bind.hpp>
 
 #include <iostream>
