@@ -160,8 +160,10 @@ set ( ZenCore_SRC
     Math/src/Quaternion4.cpp
     Math/src/Radian.cpp
     Math/src/Ray.cpp
+    Math/src/Vector2.cpp
     Math/src/Vector3.cpp
     Math/src/Vector4.cpp
+    Math/Vector2.hpp
     Math/Vector3.hpp
     Math/Vector4.hpp
     Memory/Configuration.hpp
@@ -404,6 +406,7 @@ install ( FILES
     Math/Quaternion4.hpp
     Math/Radian.hpp
     Math/Ray.hpp
+    Math/Vector2.hpp
     Math/Vector3.hpp
     Math/Vector4.hpp
     DESTINATION

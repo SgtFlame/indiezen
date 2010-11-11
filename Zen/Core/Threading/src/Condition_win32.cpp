@@ -35,51 +35,51 @@ namespace Threading {
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 
 Condition_win32::Condition_win32(const bool _initialState)
-:	m_nativeEvent(::CreateEvent(NULL, TRUE, _initialState ? TRUE : FALSE, NULL))
+:   m_nativeEvent(::CreateEvent(NULL, TRUE, _initialState ? TRUE : FALSE, NULL))
 {
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 Condition_win32::~Condition_win32()
 {
-	if (m_nativeEvent != NULL)
-	{
-		assertCondition();
-		::CloseHandle(m_nativeEvent);
-	}
+    if (m_nativeEvent != NULL)
+    {
+        assertCondition();
+        ::CloseHandle(m_nativeEvent);
+    }
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 I_Condition&
 Condition_win32::assertCondition()
 {
-	if (::SetEvent(m_nativeEvent) == FALSE)
-	{
-		throw ::std::runtime_error("Condition_win32::assert() : SetEvent() failed.");
-	}
-	return *this;
+    if (::SetEvent(m_nativeEvent) == FALSE)
+    {
+        throw ::std::runtime_error("Condition_win32::assert() : SetEvent() failed.");
+    }
+    return *this;
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 I_Condition&
 Condition_win32::retractCondition()
 {
-	if (::ResetEvent(m_nativeEvent) == FALSE)
-	{
-		throw ::std::runtime_error("Condition_win32::retract() : ResetEvent() failed.");
-	}
-	return *this;
+    if (::ResetEvent(m_nativeEvent) == FALSE)
+    {
+        throw ::std::runtime_error("Condition_win32::retract() : ResetEvent() failed.");
+    }
+    return *this;
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 I_Condition&
 Condition_win32::requireCondition()
 {
-	if (::WaitForSingleObject(m_nativeEvent, INFINITE) == WAIT_FAILED)
-	{
-		throw ::std::runtime_error("Condition_win32::require() : WaitForSingleObject() failed.");
-	}
-	return *this;
+    if (::WaitForSingleObject(m_nativeEvent, INFINITE) == WAIT_FAILED)
+    {
+        throw ::std::runtime_error("Condition_win32::require() : WaitForSingleObject() failed.");
+    }
+    return *this;
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~

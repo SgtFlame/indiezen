@@ -116,7 +116,7 @@ Container::init(int _argc, const char* _argv[])
     {
         m_pScriptEngine = Scripting::I_ScriptingManager::getSingleton().createScriptEngine(m_scriptLanguage);
 
-        if (m_pScriptEngine == NULL)
+        if (!m_pScriptEngine.isValid())
         {
             std::cout << "Error loading script engine: " << m_scriptLanguage << std::endl;
             return false;
@@ -204,7 +204,7 @@ Container::runScriptInit()
 {
     std::cout << "About to run the script." << std::endl;
 
-    if (m_pScriptEngine != NULL)
+    if (m_pScriptEngine.isValid())
     {
         if (!m_pScriptEngine->executeScript(m_defaultScript))
         {

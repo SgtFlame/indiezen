@@ -62,7 +62,7 @@ ResourceServiceFactory::create(const std::string& _type)
     // TODO Verify that _type is "ogre"
 
     // TODO Guard
-    if (m_pResourceService == NULL)
+    if (!m_pResourceService.isValid())
     {
         ResourceService* pRawService = new ResourceService();
 

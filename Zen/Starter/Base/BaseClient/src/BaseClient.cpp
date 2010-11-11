@@ -428,7 +428,7 @@ BaseClient::initScriptEngine(const std::string& _type)
 
     m_pScriptEngine = Scripting::I_ScriptingManager::getSingleton().createScriptEngine(_type);
 
-    if (m_pScriptEngine == NULL)
+    if (!m_pScriptEngine.isValid())
     {
         std::cout << "Error loading script engine: " << std::endl;
         return false;
@@ -522,7 +522,7 @@ BaseClient::initSceneService(const std::string& _type)
         std::cout << "Error creating canvas." << std::endl;
     }
 
-    return m_pSceneService != NULL;
+    return m_pSceneService.isValid();
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
@@ -618,7 +618,7 @@ BaseClient::initWaterService(const std::string& _type)
     m_pWaterService =
         Zen::Engine::World::I_WorldManager::getSingleton().createWaterService(_type, config);
 
-    if (m_pWaterService == NULL)
+    if (!m_pWaterService.isValid())
     {
         std::cout << "Error: couldn't create WaterService" << std::endl;
         return false;
@@ -661,7 +661,7 @@ BaseClient::initSoundService(const std::string& _type)
     m_pSoundService =
         Zen::Engine::Sound::I_SoundManager::getSingleton().create(_type, config);
 
-    if (m_pSoundService == NULL)
+    if (!m_pSoundService.isValid())
     {
         std::cout << "Error: couldn't create SoundService" << std::endl;
         return false;

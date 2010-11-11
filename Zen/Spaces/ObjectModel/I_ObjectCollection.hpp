@@ -17,12 +17,14 @@
 
 #include <Zen/Core/Memory/managed_ptr.hpp>
 
+#include <Zen/Spaces/ObjectModel/I_Filter.hpp>
+
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 namespace Zen {
 namespace Spaces {
 namespace ObjectModel {
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-class I_Filter;
+
 class I_View;
 class I_Subscription;
 

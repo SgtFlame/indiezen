@@ -105,4 +105,3 @@ private:
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 
 #endif // ZEN_ENGINE_PHYSICS_PHYSICS_MANAGER_HPP_INCLUDED
-
