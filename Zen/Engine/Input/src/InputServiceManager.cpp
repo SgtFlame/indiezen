@@ -138,7 +138,7 @@ void
 InputServiceManager::registerDefaultScriptEngine(pScriptEngine_type _pEngine)
 {
     /// Don't bother if the types have already been initialized
-    if (m_scriptTypesInitialized == true || _pEngine == NULL)
+    if (m_scriptTypesInitialized == true || _pEngine.isValid())
         return;
 
     // Create an InputManager module

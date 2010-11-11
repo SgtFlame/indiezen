@@ -158,7 +158,7 @@ ZenServer::initializeScriptEngine()
 {
     m_pScriptEngine = Scripting::I_ScriptingManager::getSingleton().createScriptEngine(m_scriptLanguage);
 
-    if (m_pScriptEngine == NULL)
+    if (!m_pScriptEngine.isValid())
     {
         std::cout << "Error loading script engine: " << std::endl;
         return false;
