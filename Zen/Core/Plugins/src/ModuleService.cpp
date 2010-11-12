@@ -30,7 +30,12 @@
 #include <Zen/Core/Plugins/I_ModuleManager.hpp>
 #include <Zen/Core/Threading/MutexFactory.hpp>
 #include <Zen/Core/Threading/CriticalSection.hpp>
+#include <Zen/Core/Plugins/I_PluginManager.hpp>
+#include <Zen/Core/Plugins/I_Application.hpp>
+
 #include <Zen/Core/Utility/GetLastError.hpp>
+#include <Zen/Core/Utility/log_stream.hpp>
+
 
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
@@ -62,6 +67,11 @@ ModuleService::~ModuleService()
 I_ModuleService::module_ptr_type
 ModuleService::load(const std::string& _moduleName)
 {
+    // Get the logger stream
+    Zen::Utility::log_stream& logStream(
+        I_PluginManager::getSingleton().getApplication()->getLogStream()
+    );
+
     // Guard this method
     boost::shared_ptr<Threading::CriticalSection> pGuard(
         new Threading::CriticalSection(m_pModuleGuard) );
@@ -83,11 +93,10 @@ ModuleService::load(const std::string& _moduleName)
     boost::filesystem::path modulePath;
     if(!pModuleManager->findPath(_moduleName, modulePath))
     {
-            // TODO Log Debug
-            std::cout << "DEBUG: Module " << _moduleName << " not found in defined module search paths." << std::endl;
+        logStream << "DEBUG: Module " << _moduleName << " not found in defined module search paths." << std::endl;
 
-            // TODO: Throw an exception with the error
-            return NULL;
+        // TODO: Throw an exception with the error
+        return NULL;
     }
 
     pModuleInfo->setName(_moduleName);
@@ -95,7 +104,7 @@ ModuleService::load(const std::string& _moduleName)
 #ifdef _WIN32
     I_ModuleInfo::module_handle_type hModule = LoadLibraryA(modulePath.string().c_str());
 #else
-    std::cout << "DEBUG: dlopen " << modulePath.string().c_str() << std::endl;
+    logStream << "DEBUG: dlopen " << modulePath.string().c_str() << std::endl;
     I_ModuleInfo::module_handle_type hModule = dlopen(modulePath.string().c_str(), RTLD_NOW | RTLD_GLOBAL);
 #endif // _WIN32
 
@@ -103,8 +112,7 @@ ModuleService::load(const std::string& _moduleName)
     {
         int err = Zen::Utility::GetLastError();
 
-        // TODO Log Debug
-        std::cout << "DEBUG: Error loading module " << modulePath.string()
+        logStream << "DEBUG: Error loading module " << modulePath.string()
 #ifndef _WIN32
         << dlerror()
 #else
@@ -158,8 +166,7 @@ ModuleService::load(const std::string& _moduleName)
     }
     else
     {
-        // TODO Log Debug
-        std::cout << "DEBUG: Error getting procedure address in module " << modulePath.string() << " Error " << Zen::Utility::GetLastError() << std::endl;
+        logStream << "DEBUG: Error getting procedure address in module " << modulePath.string() << " Error " << Zen::Utility::GetLastError() << std::endl;
 
         // Not found, so return NULL
         return NULL;
@@ -170,6 +177,11 @@ ModuleService::load(const std::string& _moduleName)
 void
 ModuleService::unload(module_ptr_type _pModule)
 {
+    // Get the logger stream
+    Zen::Utility::log_stream& logStream(
+        I_PluginManager::getSingleton().getApplication()->getLogStream()
+    );
+
     // Guard this method
     boost::shared_ptr<Threading::CriticalSection> pGuard(
         new Threading::CriticalSection(m_pModuleGuard) );
@@ -196,9 +208,7 @@ ModuleService::unload(module_ptr_type _pModule)
         if( dlclose(hModule) )
 #endif // _WIN32
         {
-
-            // TODO Log Debug
-            std::cout << "DEBUG: Error unloading module " << moduleName << " Error " << Zen::Utility::GetLastError() << std::endl;
+            logStream << "DEBUG: Error unloading module " << moduleName << " Error " << Zen::Utility::GetLastError() << std::endl;
 
             // TODO Throw an exception with the error
             return;

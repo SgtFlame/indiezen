@@ -25,6 +25,11 @@
 #include "ExtensionPoint.hpp"
 #include "Extension.hpp"
 
+#include <Zen/Core/Plugins/I_PluginManager.hpp>
+#include <Zen/Core/Plugins/I_Application.hpp>
+
+#include <Zen/Core/Utility/log_stream.hpp>
+
 #include <boost/bind.hpp>
 
 #include <iostream>
@@ -38,14 +43,18 @@ ExtensionPoint::ExtensionPoint(const I_ConfigurationElement& _config, PluginInfo
 ,   m_pluginInfo(_pluginInfo)
 ,   m_extensions(new I_Extension::extension_list_type)
 {
+    // Get the logger stream
+    Zen::Utility::log_stream& logStream(
+        I_PluginManager::getSingleton().getApplication()->getLogStream()
+    );
+
     m_id = _config.getAttribute("id");
     m_label = _config.getAttribute("name");
     m_schemaFileName = _config.getAttribute("schema");
 
     m_schema.listenElement("schema",    boost::bind(&ExtensionPoint::onSchemaElement, this, _1));
 
-    // TODO Log Debug
-    std::cout << "DEBUG: Creating extension-point Id: " << m_id << " Label: " << m_label << " Schema: " << m_schemaFileName << std::endl;
+    logStream << "DEBUG: Creating extension-point Id: " << m_id << " Label: " << m_label << " Schema: " << m_schemaFileName << std::endl;
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
@@ -131,8 +140,12 @@ ExtensionPoint::getNamespace() const
 void
 ExtensionPoint::addExtension(boost::shared_ptr<Extension> _extension)
 {
-    // TODO Log Debug
-    std::cout << "Adding extension " << _extension->getType() << 
+    // Get the logger stream
+    Zen::Utility::log_stream& logStream(
+        I_PluginManager::getSingleton().getApplication()->getLogStream()
+    );
+
+    logStream << "Adding extension " << _extension->getType() << 
         " to " << m_namespace << "::" << m_id << std::endl;
 
     boost::shared_ptr<I_Extension> pExtension(boost::shared_dynamic_cast<I_Extension>(_extension));
@@ -144,10 +157,14 @@ ExtensionPoint::addExtension(boost::shared_ptr<Extension> _extension)
 void
 ExtensionPoint::onSchemaElement(XMLConfigurationElement::ptr_type _pElement)
 {
+    // Get the logger stream
+    Zen::Utility::log_stream& logStream(
+        I_PluginManager::getSingleton().getApplication()->getLogStream()
+    );
+
     m_namespace = _pElement->getAttribute("targetNamespace");
 
-    // TODO Log Debug
-    std::cout << "DEBUG: targetNamepace: " << m_namespace << std::endl;
+    logStream << "DEBUG: targetNamepace: " << m_namespace << std::endl;
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~

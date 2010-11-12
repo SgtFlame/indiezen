@@ -29,7 +29,12 @@
 #include <Zen/Core/Plugins/I_Extension.hpp>
 #include <Zen/Core/Plugins/I_ExtensionPoint.hpp>
 #include <Zen/Core/Plugins/I_ExtensionQuery.hpp>
+
+#include <Zen/Core/Plugins/I_PluginManager.hpp>
+#include <Zen/Core/Plugins/I_Application.hpp>
+
 #include <Zen/Core/Utility/runtime_exception.hpp>
+#include <Zen/Core/Utility/log_stream.hpp>
 
 #include <stddef.h>
 #include <string.h>
@@ -84,6 +89,11 @@ ExtensionRegistry::createQuery()
 I_ExtensionRegistry::extension_result_set_ptr_type
 ExtensionRegistry::findExtensions(I_ExtensionQuery* const _pQuery)
 {
+    // Get the logger stream
+    Zen::Utility::log_stream& logStream(
+        I_PluginManager::getSingleton().getApplication()->getLogStream()
+    );
+
     // TODO Create an I_QueryResult so that it can take ownership of _pQuery
 
     extension_result_set_ptr_type pResult(new extension_result_set_type);
@@ -103,13 +113,14 @@ ExtensionRegistry::findExtensions(I_ExtensionQuery* const _pQuery)
         errorMessage << "Make sure it includes a path to the Framework plugin that" << std::endl;
         errorMessage << "contains the definition of this extension-point.";
         std::string msg(errorMessage.str());
+
+        logStream << msg;
         throw Zen::Utility::runtime_exception(errorMessage.str().c_str());
     }
 
     I_Extension::extension_list_ptr_type pExtensions(pExtensionPoint->getExtensions());
 
-    // TODO Log Debug
-    std::cout << "DEBUG: Found the extension-point " << pQuery->getNamespace() << "::" << pQuery->getExtensionPoint()
+    logStream << "DEBUG: Found the extension-point " << pQuery->getNamespace() << "::" << pQuery->getExtensionPoint()
         << " with " << pExtensions->size() << " extensions." << std::endl;
 
     for(I_Extension::extension_list_type::iterator iter = pExtensions->begin(); iter != pExtensions->end(); ++iter)
@@ -124,13 +135,12 @@ ExtensionRegistry::findExtensions(I_ExtensionQuery* const _pQuery)
 
         if (strcmp(extensionType.c_str(), pQuery->getType().c_str()) == 0)
         {
-            std::cout << "DEBUG: Found " << extensionType << std::endl;
+            logStream << "DEBUG: Found " << extensionType << std::endl;
             pResult->push_back(*iter);
         }
         else
         {
-            // TODO Log Debug
-            std::cout << "DEBUG: Type " << extensionType << " didn't match " << pQuery->getType() << std::endl;
+            logStream << "DEBUG: Type " << extensionType << " didn't match " << pQuery->getType() << std::endl;
         }
     }
 
@@ -175,13 +185,17 @@ ExtensionRegistry::createExtensionPoint(const I_ConfigurationElement& _config, P
 void
 ExtensionRegistry::installExtensionPoint(boost::shared_ptr<ExtensionPoint> _extensionPoint)
 {
+    // Get the logger stream
+    Zen::Utility::log_stream& logStream(
+        I_PluginManager::getSingleton().getApplication()->getLogStream()
+    );
+
     // Save the extension point indexed by the fully qualified name (namespace::id)
     std::stringstream fullExtensionId;
     fullExtensionId << _extensionPoint->getNamespace() << "::" << _extensionPoint->getId();
     m_extensionPoints[fullExtensionId.str()] = _extensionPoint;
 
-    // TODO Log Debug
-    std::cout << "DEBUG: Installing extension point: " << fullExtensionId.str()
+    logStream << "DEBUG: Installing extension point: " << fullExtensionId.str()
         << " [" << _extensionPoint->getLabel() << "]" << std::endl;
 
     extension_point_container_ptr_type pExtensions;
@@ -219,6 +233,11 @@ ExtensionRegistry::createExtension(const I_ConfigurationElement& _config, Plugin
 void
 ExtensionRegistry::installExtension(boost::shared_ptr<Extension> _extension)
 {
+    // Get the logger stream
+    Zen::Utility::log_stream& logStream(
+        I_PluginManager::getSingleton().getApplication()->getLogStream()
+    );
+
     extension_point_map::iterator iter;
 
     iter = m_extensionPoints.find(_extension->getExtensionPointId());
@@ -226,7 +245,7 @@ ExtensionRegistry::installExtension(boost::shared_ptr<Extension> _extension)
     {
 #ifdef _DEBUG
     // TODO Log Debug
-    std::cout << "DEBUG: Dumping extension points while looking for " << _extension->getExtensionPointId() << std::endl;
+    logStream << "DEBUG: Dumping extension points while looking for " << _extension->getExtensionPointId() << std::endl;
     for(iter = m_extensionPoints.begin(); iter != m_extensionPoints.end(); ++iter)
     {
         // TODO Log Debug
@@ -235,7 +254,7 @@ ExtensionRegistry::installExtension(boost::shared_ptr<Extension> _extension)
             << iter->second->getNamespace() << "::" << iter->second->getId() << "["
             << iter->second->getLabel() << "]";
 
-        std::cout << message.str() << std::endl;
+        logStream << message.str() << std::endl;
     }
 #endif
 
@@ -243,6 +262,8 @@ ExtensionRegistry::installExtension(boost::shared_ptr<Extension> _extension)
         errorMessage << "ExtensionRegistry::installExtension(): Error installing extension " <<
             _extension->getPluginInfo().getName() << ".  Cannot find extension point " << _extension->getExtensionPointId();
         std::string msg(errorMessage.str());
+
+        logStream << msg;
         throw Zen::Utility::runtime_exception(errorMessage.str().c_str());
     }
 
