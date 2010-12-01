@@ -23,21 +23,63 @@
 //  Tony Richards trichards@indiezen.com
 //  Matthew Alan Gray mgray@indiezen.org
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-#include "../I_ResourceLocation.hpp"
+#ifndef ZEN_APPSERVER_FULLY_QUALIFIED_RESOURCE_LOCATION_HPP_INCLUDED
+#define ZEN_APPSERVER_FULLY_QUALIFIED_RESOURCE_LOCATION_HPP_INCLUDED
+
+#include "../I_FullyQualifiedResourceLocation.hpp"
+#include "../I_ApplicationService.hpp"
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 namespace Zen {
 namespace Enterprise {
 namespace AppServer {
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-I_ResourceLocation::I_ResourceLocation()
-{
-}
 
-//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-I_ResourceLocation::~I_ResourceLocation()
+class FullyQualifiedResourceLocation
+:   public I_FullyQualifiedResourceLocation
 {
-}
+    /// @name Types
+    /// @{
+public:
+    typedef Zen::Memory::managed_ptr<I_ApplicationService>  pApplicationService_type;
+    /// @}
+
+    /// @name I_FullyQualifiedResourceLocation implementation.
+    /// @{
+public:
+    virtual pEndpoint_type getEndpoint() const;
+    virtual pResourceLocation_type getRelativeLocation() const;
+    virtual const std::string toString() const;
+    /// @}
+
+    /// @name FullyQualifiedResourceLocation implementation
+    /// @{
+public:
+    /// @}
+
+    /// @name Events
+    /// @{
+public:
+    /// @}
+
+    /// @name 'Structors
+    /// @{
+protected:
+    friend class ApplicationServerManager;
+    explicit FullyQualifiedResourceLocation(const std::string& _fromURLString);
+             FullyQualifiedResourceLocation(pEndpoint_type _pEndpoint, const std::string& _fromLocationString);
+             FullyQualifiedResourceLocation(pEndpoint_type _pEndpoint, pResourceLocation_type _pLocation);
+    virtual ~FullyQualifiedResourceLocation();
+    /// @}
+
+    /// @name Member Variables
+    /// @{
+private:
+    pEndpoint_type          m_pEndpoint;
+    pResourceLocation_type  m_pLocation;
+    /// @}
+
+};  // class FullyQualifiedResourceLocation
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 }   // namespace AppServer
@@ -45,3 +87,4 @@ I_ResourceLocation::~I_ResourceLocation()
 }   // namespace Zen
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 
+#endif // ZEN_APPSERVER_FULLY_QUALIFIED_RESOURCE_LOCATION_HPP_INCLUDED
