@@ -23,19 +23,19 @@
 //  Tony Richards trichards@indiezen.com
 //  Matthew Alan Gray mgray@indiezen.org
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-#include "../I_ResourceLocation.hpp"
+#include "../I_Connection.hpp"
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 namespace Zen {
 namespace Enterprise {
 namespace AppServer {
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-I_ResourceLocation::I_ResourceLocation()
+I_Connection::I_Connection()
 {
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-I_ResourceLocation::~I_ResourceLocation()
+I_Connection::~I_Connection()
 {
 }
 
