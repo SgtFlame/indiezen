@@ -11,7 +11,7 @@ set(CMAKE_MODULE_PATH "${INDIEZEN_PARENT}/Zen/build/CMake/Modules" ${CMAKE_CURRE
 list (REMOVE_DUPLICATES CMAKE_MODULE_PATH)
 
 Find_Package(IndieZen REQUIRED)
-Find_Package(Boost REQUIRED program_options)
+Find_Package(Boost REQUIRED program_options date_time)
 
 SET (LIB_TYPE SHARED)
 

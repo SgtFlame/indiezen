@@ -107,6 +107,7 @@ DataElement::getStringValue() const
     }
 
     std::stringstream value;
+    boost::posix_time::time_facet time_facet("%Y-%m-%d %H-%M-%s");
 
     switch(m_type)
     {
@@ -117,6 +118,11 @@ DataElement::getStringValue() const
         break;
     case REAL:
         value << boost::any_cast<Math::Real>(m_value);
+        break;
+    case DATETIME:
+        /// TODO Implement
+        value.imbue(std::locale(value.getloc(), &time_facet));
+        value << boost::any_cast<boost::posix_time::ptime>(m_value);
         break;
     case UNKNOWN:
         if (m_value.type() == typeid(std::string))
@@ -131,6 +137,11 @@ DataElement::getStringValue() const
         else if (m_value.type() == typeid(boost::uint64_t))
         {
             value << boost::any_cast<boost::uint64_t>(m_value);
+            return value.str();
+        }
+        else if (m_value.type() == typeid(boost::posix_time::ptime))
+        {
+            /// TODO Implement
             return value.str();
         }
         // No break here.  Error if type wasn't found.
@@ -162,6 +173,11 @@ DataElement::operator std::string()
 Math::Real
 DataElement::getRealValue() const
 {
+    if (m_type == REAL)
+    {
+        return boost::any_cast<Math::Real>(m_value);
+    }
+
     throw Utility::runtime_exception("DataElement::getRealValue(): Error, not implemented");
 }
 
@@ -217,6 +233,34 @@ DataElement::operator=(boost::int64_t _value)
 DataElement::operator boost::int64_t()
 {
     return getInt64Value();
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+boost::posix_time::ptime
+DataElement::getDateTimeValue() const
+{
+    if (m_type == DATETIME)
+    {
+        return boost::any_cast<boost::posix_time::ptime>(m_value);
+    }
+
+    throw Utility::runtime_exception("DataElement::getDateTimeValue(): Error, not implemented");
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+I_DataElement&
+DataElement::operator=(const boost::posix_time::ptime& _value)
+{
+    m_value = _value;
+    m_type = DATETIME;
+    setDirty(true);
+    return *this;
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+DataElement::operator boost::posix_time::ptime()
+{
+    return getDateTimeValue();
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
