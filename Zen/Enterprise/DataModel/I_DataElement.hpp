@@ -34,6 +34,7 @@
 #include <boost/any.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/cstdint.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 #include <string>
 
@@ -56,6 +57,7 @@ public:
         STRING,
         REAL,
         INTEGER,
+        DATETIME,
         UNKNOWN
     };
 
@@ -93,10 +95,16 @@ public:
     /// @return the data element value as a Math::Real.
     virtual Math::Real getRealValue() const = 0;
 
+    /// @return the data element value as an integer
     virtual boost::int64_t getInt64Value() const = 0;
     virtual void setInt64Value(boost::int64_t _value) = 0;
     virtual I_DataElement& operator=(boost::int64_t _value) = 0;
     virtual operator boost::int64_t() = 0;
+
+    /// @return the data element value as a boost::posix_time::ptime
+    virtual boost::posix_time::ptime getDateTimeValue() const = 0;
+    virtual I_DataElement& operator=(const boost::posix_time::ptime& _value) = 0;
+    virtual operator boost::posix_time::ptime() = 0;
 
     /// @}
 

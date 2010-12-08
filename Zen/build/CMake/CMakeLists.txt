@@ -7,6 +7,8 @@ set ( INDIEZEN_VERSION_MINOR "6" )
 set ( INDIEZEN_VERSION_PATCH "1" )
 set ( INDIEZEN_VERSION "${INDIEZEN_VERSION_MAJOR}.${INDIEZEN_VERSION_MINOR}.${INDIEZEN_VERSION_PATCH}" )
 
+set(Boost_ADDITIONAL_VERSIONS "1.45" "1.45.0" "1.44" "1.44.0" "1.43" "1.43.0" "1.42" "1.42.0" "1.41.0" "1.41" "1.40.0" "1.40" "1.39.0" "1.39" "1.38.0" "1.38" "1.37.0" "1.37" )
+Find_Package(Boost REQUIRED serialization system filesystem)
 
 if ( WIN32 )
 	set(BUILD_EXE_TYPE "WIN32")

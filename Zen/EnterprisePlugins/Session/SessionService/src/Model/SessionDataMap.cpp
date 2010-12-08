@@ -283,7 +283,7 @@ SessionDataMap::getByKey(boost::uint64_t _primaryKeyValue)
 
     // Get a record from the Session.
     std::stringstream query;
-    query << "SELECT * FROM Session WHERE sessionId = " << primaryKeyValue;
+    query << "SELECT * FROM " << getTableName() << " WHERE sessionId = " << primaryKeyValue;
 
     pQuery->setQuery(query.str());
     
@@ -322,7 +322,7 @@ SessionDataMap::deleteByKey(boost::uint64_t _primaryKeyValue)
 
     // Delete a record in the Session.
     std::stringstream query;
-    query << "DELETE FROM Session WHERE sessionId = " << primaryKeyValue;
+    query << "DELETE FROM " << getTableName() << " WHERE sessionId = " << primaryKeyValue;
 
     pQuery->setQuery(query.str());
 
@@ -348,7 +348,7 @@ SessionDataMap::update(pDomainObject_type _pDomainObject)
     {
         // Construct the query to insert a record into the Session table.
 
-        query << "INSERT into Session ( "
+        query << "INSERT into " << getTableName() << " ( "
             << getNonPKFieldNames() << " ) VALUES ( ";
 
         // Append all of the values
@@ -357,7 +357,7 @@ SessionDataMap::update(pDomainObject_type _pDomainObject)
         escapedStringValue = escapeString(_pDomainObject->getAccountId().getStringValue());
         query << "\'" << escapedStringValue << "\'";
         escapedStringValue = escapeString(_pDomainObject->getEndpoint().getStringValue());
-        query << "\'" << escapedStringValue << "\'";
+        query << ",\'" << escapedStringValue << "\'";
         escapedStringValue = escapeString(_pDomainObject->getLocation().getStringValue());
         query << ", \'" << escapedStringValue << "\'";
         escapedStringValue = escapeString(_pDomainObject->getStatus().getStringValue());
@@ -390,7 +390,7 @@ SessionDataMap::update(pDomainObject_type _pDomainObject)
         // Count the number of dirty fields.
         int dirtyFields = 0;
 
-        query << "UPDATE Session SET ";
+        query << "UPDATE " << getTableName() << " SET ";
 
         std::string separator("");
 
@@ -488,7 +488,9 @@ SessionDataMap::getAll()
         pQuery = pTransaction->createStaticQuery();
 
     // Get all of the records from the Session.
-    pQuery->setQuery("SELECT * FROM Session");
+    std::stringstream query;
+    query << "SELECT * FROM " << getTableName();
+    pQuery->setQuery(query.str());
 
     // Create a result handler to handle the execution results
     Zen::Database::I_DatabaseTransaction::pQueryResultHandler_type pResultHandler(new CollectionResultHandler(pTransaction, pFutureCollection, pCollection));

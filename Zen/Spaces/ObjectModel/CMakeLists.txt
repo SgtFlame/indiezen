@@ -43,6 +43,8 @@ set ( ZenObjectModel_SRC
     I_ObjectType.hpp
     I_Subscription.hpp
     I_View.hpp
+    src/Filter.cpp
+    src/Filter.hpp
     src/I_Element.cpp
     src/I_ElementCollection.cpp
     src/I_ElementType.cpp
