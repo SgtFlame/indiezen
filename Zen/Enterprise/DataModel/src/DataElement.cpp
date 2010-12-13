@@ -2,6 +2,7 @@
 // Zen Enterprise Framework
 //
 // Copyright (C) 2001 - 2009 Tony Richards
+// Copyright (C) 2008 - 2010 Matthew Alan Gray
 //
 //  This software is provided 'as-is', without any express or implied
 //  warranty.  In no event will the authors be held liable for any damages
@@ -20,6 +21,7 @@
 //  3. This notice may not be removed or altered from any source distribution.
 //
 //  Tony Richards trichards@indiezen.com
+//  Matthew Alan Gray mgray@indiezen.org
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 #include "DataElement.hpp"
 
@@ -107,7 +109,9 @@ DataElement::getStringValue() const
     }
 
     std::stringstream value;
-    boost::posix_time::time_facet time_facet("%Y-%m-%d %H-%M-%s");
+    boost::posix_time::time_facet* time_facet(
+        new boost::posix_time::time_facet("%Y-%m-%d %H:%M:%s")
+    );
 
     switch(m_type)
     {
@@ -120,8 +124,7 @@ DataElement::getStringValue() const
         value << boost::any_cast<Math::Real>(m_value);
         break;
     case DATETIME:
-        /// TODO Implement
-        value.imbue(std::locale(value.getloc(), &time_facet));
+        value.imbue(std::locale(value.getloc(), time_facet));
         value << boost::any_cast<boost::posix_time::ptime>(m_value);
         break;
     case UNKNOWN:
