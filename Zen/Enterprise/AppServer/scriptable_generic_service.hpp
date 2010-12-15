@@ -373,8 +373,8 @@ protected:
 template<typename BaseClass_type, typename Class_type>
 inline
 scriptable_generic_service<BaseClass_type, Class_type>::scriptable_generic_service(Zen::Enterprise::AppServer::I_ApplicationServer& _appServer)
-:	m_appServer(_appServer)
-,	m_pHandlersMutex(Zen::Threading::MutexFactory::create())
+:   m_appServer(_appServer)
+,   m_pHandlersMutex(Zen::Threading::MutexFactory::create())
 {
 }
 

@@ -42,7 +42,7 @@ class Connection
     /// @name Types
     /// @{
 public:
-	typedef boost::function<void (Parm1_type)>		delegate_type;
+    typedef boost::function<void (Parm1_type)>      delegate_type;
     typedef Event<Parm1_type>*                      pEvent_type;
     /// @}
 

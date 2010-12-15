@@ -65,6 +65,9 @@ public:
     /// the action occurs.
     virtual I_Action& createAction(const std::string& _name, ActionFunction_type _function) = 0;
 
+    /// Destroy an action and clear all of its existing connections.
+    virtual void destroyAction(const std::string& _name) = 0;
+
     /// Indicates if an action exists or not.
     /// @return true if the action exists, otherwise returns false.
     virtual bool actionExists(const std::string& _name) = 0;

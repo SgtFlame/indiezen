@@ -38,13 +38,20 @@
 namespace Zen {
 namespace Event {
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-;
+
+class I_Connection;
 
 /// @brief Action interface
 class EVENT_DLL_LINK I_Action
 :   public Scripting::I_ScriptableType
 ,   public Memory::managed_self_ref<I_Action>
 {
+    /// @name Forward Declaration
+    /// @{
+public:
+    struct I_ConnectionVisitor;
+    /// @}
+
     /// @name Types
     /// @{
 public:
@@ -62,7 +69,30 @@ public:
     /// @name I_Action interface
     /// @{
 public:
+    /// Dispatch this action.
     virtual void dispatch(boost::any& _parameter) = 0;
+
+    /// Add the action connection.
+    virtual void addConnection(I_Connection& _pConnection) = 0;
+
+    /// Remove the action connection.
+    virtual void removeConnection(I_Connection& _pConnection) = 0;
+
+    /// Get the action connection.
+    virtual void getConnections(I_ConnectionVisitor& _visitor) = 0;
+    /// @}
+
+    /// @name Inner Structures
+    /// @{
+public:
+    //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+    struct I_ConnectionVisitor
+    {
+        virtual void begin() = 0;
+        virtual void visit(I_Connection& _connection) = 0;
+        virtual void end() = 0;
+    };  // interface I_ConnectionVisitor
+    //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
     /// @}
 
     /// @name 'Structors
