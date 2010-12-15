@@ -29,6 +29,8 @@
 
 #include <Zen/Core/Scripting/I_ScriptType.hpp>
 
+#include <Zen/Core/Event/I_Connection.hpp>
+
 #include <iostream>
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
@@ -62,6 +64,42 @@ Action::dispatch(boost::any& _parameter)
             //<< getName()
             << std::endl;
     }
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+void
+Action::addConnection(I_Connection& _connection)
+{
+    /// TODO Guard?
+
+    m_connections.push_back(&_connection);
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+void
+Action::removeConnection(I_Connection& _connection)
+{
+    /// TODO Guard?
+
+    m_connections.remove(&_connection);
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+void
+Action::getConnections(I_ConnectionVisitor& _visitor)
+{
+    /// TODO Guard?
+
+    _visitor.begin();
+
+    Connections_type::iterator iter = m_connections.begin();
+    while (iter != m_connections.end())
+    {
+        _visitor.visit(**iter);
+        iter++;
+    }
+
+    _visitor.end();
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~

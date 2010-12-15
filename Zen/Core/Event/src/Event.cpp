@@ -122,6 +122,7 @@ I_Connection&
 Event_impl::connect(pAction_type _pAction, I_EventQueue* _pQueue)
 {
     pConnection_type pConnection = new Connection_type(this, _pAction);
+    _pAction->addConnection(*pConnection);
 
     Threading::CriticalSection guard(m_pMutex);
 

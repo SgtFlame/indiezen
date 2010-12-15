@@ -29,6 +29,8 @@
 #include "../I_Action.hpp"
 #include "../I_ActionMap.hpp"
 
+#include <list>
+
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 namespace Zen {
 namespace Event {
@@ -49,6 +51,9 @@ public:
     /// @{
 public:
     virtual void dispatch(boost::any& _parameter);
+    virtual void addConnection(I_Connection& _connection);
+    virtual void removeConnection(I_Connection& _connection);
+    virtual void getConnections(I_ConnectionVisitor& _visitor);
     /// @}
 
     /// @name I_ScriptableType implementation
@@ -70,6 +75,10 @@ private:
     pScriptModule_type                  m_pScriptModule;
     Scripting::I_ObjectReference*       m_pScriptObject;
     I_ActionMap::ActionFunction_type    m_function;
+
+    /// TODO Use an intrusive list here?
+    typedef std::list<I_Connection*>    Connections_type;
+    Connections_type                    m_connections;
     /// @}
 
 };  // class Action

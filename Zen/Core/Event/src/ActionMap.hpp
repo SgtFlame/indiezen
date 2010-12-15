@@ -58,6 +58,7 @@ public:
     /// @{
 public:
     virtual I_Action& createAction(const std::string& _name, ActionFunction_type _function);
+    virtual void destroyAction(const std::string& _name);
     virtual bool actionExists(const std::string& _name);
     virtual I_Action& getAction(const std::string& _name);
     virtual I_Action& operator[](const std::string& _name);
@@ -81,7 +82,7 @@ public:
 
     void destroyScriptAction(pAction_type::weak_ptr_type _wpAction);
 
-    void destroyAction(pAction_type::weak_ptr_type _wpAction);
+    void destroyStandardAction(pAction_type::weak_ptr_type _wpAction);
     /// @}
 
     /// @name Event handlers

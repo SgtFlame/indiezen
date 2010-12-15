@@ -78,7 +78,6 @@ static void destroy(Memory::managed_weak_ptr<I_MessageRegistry> _pMessageRegistr
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-
 ApplicationServer::ApplicationServer()
 :   m_pEventService(Event::I_EventManager::getSingleton().create("eventService"))
 ,   m_sharedThreadPool(16, NULL, true, true)
@@ -89,7 +88,6 @@ ApplicationServer::ApplicationServer()
 ,   m_pMessageRegistry_type(new NumericTypeMessageRegistry(), &destroy)
 ,   m_databaseConnectionsMap()
 {
-    
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
@@ -748,6 +746,7 @@ ApplicationServer::handleMessage(pMessage_type _pMessage)
         {
             // This is a message received by a protocol adapter or was sent
             // from a local application service to another local application service.
+
             class HandleMessageTask
             :   public Threading::ThreadPool::Task
             {
@@ -806,11 +805,6 @@ ApplicationServer::handleRequest(pRequest_type _pRequest, pResponseHandler_type 
     {
         // TODO: If _pRequest destination is not this server then the request is destined for
         // another destination and it should be sent instead of dispatched.
-        std::cout << "Sending a request to " 
-            << _pRequest->getDestinationEndpoint()->toString()
-            << "/"
-            << pDestination->toString()
-            << std::endl;
 
         if (isLocalDestination(_pRequest->getDestinationEndpoint()))
         {
@@ -900,15 +894,6 @@ ApplicationServer::handleInstallProtocol(pProtocolService_type _pProtocolService
     Threading::CriticalSection lock(m_pProtocolGuard);
 
     m_protocolServices[_protocolName] = _pProtocolService;
-
-    // TODO Handle the startup sequence better.  All prepareToStart() must be called for both the protocols
-    // and the services, then all of the start() methods must be called.
-    // start() must be called
-
-#if 0   // deprecated
-    _pProtocolService->prepareToStart(m_sharedThreadPool);
-    _pProtocolService->start();
-#endif  // deprecated
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
@@ -932,12 +917,6 @@ ApplicationServer::handleInstallApplication(pApplicationService_type _pApplicati
             pScriptable->registerScriptEngine(m_pScriptEngine);
         }
     }
-
-#if 0   // deprecated
-    // TODO Handle startup sequence better.  
-    _pApplicationService->prepareToStart(m_sharedThreadPool);
-    _pApplicationService->start();
-#endif  // deprecated
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~

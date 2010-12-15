@@ -37,6 +37,7 @@
 #include <Zen/Core/Scripting/I_ScriptType.hpp>
 
 #include <Zen/Core/Event/I_Action.hpp>
+#include <Zen/Core/Event/I_Connection.hpp>
 
 #include <boost/bind.hpp>
 
@@ -77,10 +78,38 @@ ActionMap::createAction(const std::string& _name, ActionFunction_type _function)
 
     Action* pRawAction = new Action(getScriptObject()->getModule(), _function);
 
-    pAction_type pAction(pRawAction, boost::bind(&ActionMap::destroyAction, this, _1));
+    pAction_type pAction(pRawAction, boost::bind(&ActionMap::destroyStandardAction, this, _1));
     m_actionMap[_name] = pAction;
 
     return *pAction;
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+void
+ActionMap::destroyAction(const std::string& _name)
+{
+    class ConnectionVisitor
+    :   public I_Action::I_ConnectionVisitor
+    {
+    public:
+        virtual void begin() {}
+
+        virtual void visit(I_Connection& _connection)
+        {
+            _connection.disconnect();
+        }
+
+        virtual void end() {}
+
+    };  // class ConnectionVisitor
+
+    ActionMap_type::iterator iter = m_actionMap.find(_name);
+    if (iter != m_actionMap.end())
+    {
+        ConnectionVisitor visitor;
+        iter->second->getConnections(visitor);
+        m_actionMap.erase(iter);
+    }
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
@@ -131,7 +160,7 @@ ActionMap::destroyScriptAction(pAction_type::weak_ptr_type _wpAction)
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 void
-ActionMap::destroyAction(pAction_type::weak_ptr_type _wpAction)
+ActionMap::destroyStandardAction(pAction_type::weak_ptr_type _wpAction)
 {
     Action* pAction = dynamic_cast<Action*>(_wpAction.get());
 
