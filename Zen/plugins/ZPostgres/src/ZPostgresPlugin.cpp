@@ -1,7 +1,8 @@
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 // Zen Enterprise Framework
 //
-// Copyright (C) 2001 - 2008 Tony Richards
+// Copyright (C) 2001 - 2011 Tony Richards
+// Copyright (C) 2008 - 2011 Matthew Alan Gray
 //
 //  This software is provided 'as-is', without any express or implied
 //  warranty.  In no event will the authors be held liable for any damages
@@ -20,6 +21,7 @@
 //  3. This notice may not be removed or altered from any source distribution.
 //
 //  Tony Richards trichards@indiezen.com
+//  Matthew Alan Gray mgray@indiezen.org
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 #include <Zen/Core/Plugins/Utilities.hpp>
 
@@ -31,5 +33,5 @@ using namespace Zen::ZPostgres;
 IMPLEMENT_SINGLE_ZEN_PLUGIN(ZPostgresModule, ZPostgresPlugin)
 
 BEGIN_ZEN_EXTENSION_MAP(ZPostgresPlugin)
-    ZEN_EXTENSION("Zen::Database::DatabaseService", &DatabaseServiceFactory::getSingleton())
+    ZEN_EXTENSION("Zen::Enterprise::Database::DatabaseService", &DatabaseServiceFactory::getSingleton())
 END_ZEN_EXTENSION_MAP()

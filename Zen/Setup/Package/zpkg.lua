@@ -426,6 +426,7 @@ function generateBuildHandler(startArg)
 		["plugins/ZCrazyEddie"] = {},
 		["plugins/ZLua"] = {},
 		["plugins/ZSQLite"] = {},
+        ["plugins/ZPostgres"] = {},
 		["plugins/ZBoostNetworking"] = {},
 		["plugins/ZNewton"] = {},
         ["plugins/ZTerrain"] = {},

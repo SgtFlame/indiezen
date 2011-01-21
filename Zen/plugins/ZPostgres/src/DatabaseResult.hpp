@@ -1,8 +1,8 @@
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-// Zen Enterprise Framework
+// Zen Game Engine Framework
 //
 // Copyright (C) 2001 - 2011 Tony Richards
-// Copyright (C) 2008 - 2011 Matthew Alan Gray
+// Copyright (C)        2011 Matthew Alan Gray
 //
 //  This software is provided 'as-is', without any express or implied
 //  warranty.  In no event will the authors be held liable for any damages
@@ -23,49 +23,69 @@
 //  Tony Richards trichards@indiezen.com
 //  Matthew Alan Gray mgray@indiezen.org
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-#ifndef ZEN_ZPOSTGRES_DATABASE_SERVICE_FACTORY_HPP_INCLUDED
-#define ZEN_ZPOSTGRES_DATABASE_SERVICE_FACTORY_HPP_INCLUDED
+#ifndef ZEN_ZPOSTGRES_DATABASE_RESULT_HPP_INCLUDED
+#define ZEN_ZPOSTGRES_DATABASE_RESULT_HPP_INCLUDED
 
-#include <Zen/Enterprise/Database/I_DatabaseServiceFactory.hpp>
+#include "PostgresTypes.hpp"
+
+#include "libpq-fe.h"
+
+#include <Zen/Core/Memory/managed_ptr.hpp>
+#include <Zen/Core/Memory/managed_weak_ptr.hpp>
+#include <Zen/Enterprise/Database/I_DatabaseResult.hpp>
+#include <Zen/Enterprise/Database/I_DatabaseColumn.hpp>
+#include <Zen/Enterprise/Database/I_DatabaseRow.hpp>
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 namespace Zen {
 namespace ZPostgres {
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 
-class DatabaseServiceFactory
-: public Database::I_DatabaseServiceFactory
+class DatabaseResult
+:   public Zen::Database::I_DatabaseResult
 {
-    /// @name I_DatabaseServiceFactory implementation
+    /// @name Types
     /// @{
 public:
-    virtual pDatabaseService_type create(const std::string& _type, Configuration_type _config);
     /// @}
 
-    /// @name DatabaseServiceFactory implementation
-    /// @{
-private:
-    void destroy(wpDatabaseService_type _pService);
-    /// @}
-
-    /// @name Static methods
+    /// @name I_DatabaseResult implementation
     /// @{
 public:
-    static DatabaseServiceFactory& getSingleton();
+    virtual void getResults(I_ResultVisitor& _visitor);
+    virtual void getColumns(I_ColumnVisitor& _visitor);
+    /// @}
+
+    /// @name DatabaseResult implementation
+    /// @{
+public:
+    /// Step through the rows, or for inserts and updates, just do it.
+    void finish();
+
+    PGresult* getPGResult() const;
     /// @}
 
     /// @name 'Structors
     /// @{
 public:
-             DatabaseServiceFactory();
-    virtual ~DatabaseServiceFactory();
+             DatabaseResult(PGconn* _pConnection, const std::string& _statementName);
+    virtual ~DatabaseResult();
     /// @}
 
-};  // class DatabaseServiceFactory
+    /// @name Member variables
+    /// @{
+private:
+    PGconn*             m_pConnection;
+    const std::string   m_statementName;
+    PGresult*           m_pResult;
+    bool                m_done;
+    /// @}
+
+};  // class DatabaseResult
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 }   // namespace ZPostgres
 }   // namespace Zen
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 
-#endif // ZEN_ZPOSTGRES_DATABASE_SERVICE_FACTORY_HPP_INCLUDED
+#endif // ZEN_ZPOSTGRES_DATABASE_RESULT_HPP_INCLUDED

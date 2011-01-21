@@ -1,8 +1,8 @@
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-// Zen Enterprise Framework
+// Zen Game Engine Framework
 //
 // Copyright (C) 2001 - 2011 Tony Richards
-// Copyright (C) 2008 - 2011 Matthew Alan Gray
+// Copyright (C)        2011 Matthew Alan Gray
 //
 //  This software is provided 'as-is', without any express or implied
 //  warranty.  In no event will the authors be held liable for any damages
@@ -23,49 +23,22 @@
 //  Tony Richards trichards@indiezen.com
 //  Matthew Alan Gray mgray@indiezen.org
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-#ifndef ZEN_ZPOSTGRES_DATABASE_SERVICE_FACTORY_HPP_INCLUDED
-#define ZEN_ZPOSTGRES_DATABASE_SERVICE_FACTORY_HPP_INCLUDED
-
-#include <Zen/Enterprise/Database/I_DatabaseServiceFactory.hpp>
+#include "DatabaseDynamicQuery.hpp"
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 namespace Zen {
 namespace ZPostgres {
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-
-class DatabaseServiceFactory
-: public Database::I_DatabaseServiceFactory
+DatabaseDynamicQuery::DatabaseDynamicQuery()
 {
-    /// @name I_DatabaseServiceFactory implementation
-    /// @{
-public:
-    virtual pDatabaseService_type create(const std::string& _type, Configuration_type _config);
-    /// @}
+}
 
-    /// @name DatabaseServiceFactory implementation
-    /// @{
-private:
-    void destroy(wpDatabaseService_type _pService);
-    /// @}
-
-    /// @name Static methods
-    /// @{
-public:
-    static DatabaseServiceFactory& getSingleton();
-    /// @}
-
-    /// @name 'Structors
-    /// @{
-public:
-             DatabaseServiceFactory();
-    virtual ~DatabaseServiceFactory();
-    /// @}
-
-};  // class DatabaseServiceFactory
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+DatabaseDynamicQuery::~DatabaseDynamicQuery()
+{
+}
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 }   // namespace ZPostgres
 }   // namespace Zen
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-
-#endif // ZEN_ZPOSTGRES_DATABASE_SERVICE_FACTORY_HPP_INCLUDED

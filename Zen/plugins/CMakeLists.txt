@@ -201,6 +201,16 @@ endif(OPENAL_FOUND AND ALUT_FOUND AND OGG_FOUND AND VORBIS_FOUND)
 #add_subdirectory( ZOpenAL )
 
 #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+
+Find_Package(PostgreSql)
+
+if (POSTGRESQL_FOUND)
+    message("-- ZPostgres")
+    add_subdirectory( ZPostgres )
+else(POSTGRESQL_FOUND)
+    message("ZPostgres will NOT be compiled. Dependencies not found.")
+endif (POSTGRESQL_FOUND)
+#-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 # These have not yet been ported.
 #  Please add them if you port them ;)
 #add_subdirectory( BasicNetworking )
@@ -216,5 +226,4 @@ endif(OPENAL_FOUND AND ALUT_FOUND AND OGG_FOUND AND VORBIS_FOUND)
 #add_subdirectory( ZFMOD )
 #add_subdirectory( ZMySQL )
 #add_subdirectory( ZPhysX )
-#add_subdirectory( ZPostgres )
 #add_subdirectory( ZRakNet )

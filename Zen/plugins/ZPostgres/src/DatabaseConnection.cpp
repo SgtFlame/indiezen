@@ -1,7 +1,8 @@
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 // Zen Enterprise Framework
 //
-// Copyright (C) 2001 - 2008 Tony Richards
+// Copyright (C) 2001 - 2011 Tony Richards
+// Copyright (C) 2008 - 2011 Matthew Alan Gray
 //
 //  This software is provided 'as-is', without any express or implied
 //  warranty.  In no event will the authors be held liable for any damages
@@ -20,46 +21,39 @@
 //  3. This notice may not be removed or altered from any source distribution.
 //
 //  Tony Richards trichards@indiezen.com
+//  Matthew Alan Gray mgray@indiezen.org
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 
 #include "DatabaseConnection.hpp"
+#include "DatabaseTransaction.hpp"
 
-#include <Zen/Enterprise/Database/I_DatabaseTransaction.hpp>
+#include <Zen/Core/Utility/runtime_exception.hpp>
+
+#include <boost/bind.hpp>
 
 #include <sstream>
-
-#include <stddef.h>
+#include <string>
+#include <map>
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 namespace Zen {
 namespace ZPostgres {
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-DatabaseConnection::DatabaseConnection(pDatabase_type _pDatabase, const std::string& _name, Configuration_type& _config)
+DatabaseConnection::DatabaseConnection(pDatabase_type _pDatabase, const std::string& _name, PGconn* _pConnection)
 :   m_pDatabase(_pDatabase)
-,   m_bConnected(false)
 ,   m_name(_name)
+,   m_pConnection(_pConnection)
+,   m_pTransaction()
 {
-    std::stringstream connInfo;
-
-    // TODO Map these to common values
-
-    Configuration_type::const_iterator iter;
-
-    for(iter = _config.begin(); iter != _config.end(); iter++)
-    {
-        // TODO escape iter->second
-        connInfo << iter->first << "=\'" << iter->second << "\' ";
-    }
-
-    m_pConnection = PQconnectdb(connInfo.str().c_str());
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 DatabaseConnection::~DatabaseConnection()
 {
-    if (m_bConnected)
+    if (m_pConnection != NULL)
     {
-        disconnect();
+        PQfinish(m_pConnection);
+        m_pConnection = NULL;
     }
 }
 
@@ -71,41 +65,92 @@ DatabaseConnection::getName() const
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-void
-DatabaseConnection::disconnect()
-{
-    if (m_pConnection != NULL)
-    {
-        m_pDatabase->onDisconnectedEvent(m_pSelfReference.lock());
-
-        PQfinish(m_pConnection);
-        m_pConnection = NULL;
-    }
-}
-
-//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 DatabaseConnection::pDatabaseTransaction_type
 DatabaseConnection::beginTransaction()
 {
-    pDatabaseTransaction_type pTransaction;
+    if (!m_pTransaction.expired())
+    {
+        throw Utility::runtime_exception("Nested transactions are not supported.");
+    }
+    else
+    {
+        DatabaseTransaction* pRawDatabaseTransaction = 
+            new DatabaseTransaction(m_pConnection);
 
-    // TODO Implement
+        pDatabaseTransaction_type pTransaction(
+            pRawDatabaseTransaction,
+            boost::bind(&DatabaseConnection::onDestroyTransaction, this, _1)
+        );
 
-    return pTransaction;
+        wpDatabaseTransaction_type pWeakTransaction(pTransaction);
+        m_pTransaction = pWeakTransaction;
+
+        return pTransaction;
+    }
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 void
 DatabaseConnection::commitTransaction(pDatabaseTransaction_type _pDatabaseTransaction)
 {
-    // TODO Implement
+    _pDatabaseTransaction->commit();
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 void
-DatabaseConnection::setSelfReference(self_reference_type _pReference)
+DatabaseConnection::rollbackTransaction(pDatabaseTransaction_type _pDatabaseTransaction)
 {
-    m_pSelfReference = _pReference;
+    _pDatabaseTransaction->rollback();
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+void
+DatabaseConnection::onDestroyTransaction(wpDatabaseTransaction_type _wpDatabaseTransaction)
+{
+    /// Fire the DatabaseTransaction's onDestroyEvent
+    _wpDatabaseTransaction->onDestroyEvent(_wpDatabaseTransaction);
+
+    /// Delete the DatabaseTransaction
+    DatabaseTransaction* pDatabaseTransaction = 
+        dynamic_cast<DatabaseTransaction*>(_wpDatabaseTransaction.get());
+
+    if( pDatabaseTransaction )
+    {
+        delete pDatabaseTransaction;
+    }
+    else
+    {
+        throw Utility::runtime_exception("Zen::Database::DatabaseConnection::onDestroyTransaction() : _wpDatabaseTransaction is not a valid DatabaseTransaction.");
+    }
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+std::string
+DatabaseConnection::escapeString(const std::string& _string)
+{
+    std::string str(_string);
+
+    // Escape the project name
+    std::string searchString("\'"); 
+    std::string replaceString("\'\'");
+
+    std::string::size_type pos = 0;
+    while ((pos = _string.find(searchString, pos)) != std::string::npos) 
+    {
+        str.replace(pos, searchString.size(), replaceString);
+        pos++;
+    }
+
+    searchString = "\"\"";
+    pos = 0;
+
+    while ((pos = _string.find(searchString, pos)) != std::string::npos) 
+    {
+        str.replace(pos, searchString.size(), replaceString);
+        pos++;
+    }
+
+    return str;
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
