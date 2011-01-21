@@ -1,8 +1,8 @@
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-// Zen Enterprise Framework
+// Zen Game Engine Framework
 //
-// Copyright (C) 2001 - 2011 Tony Richards
-// Copyright (C) 2008 - 2011 Matthew Alan Gray
+// Copyright (C) 2001 - 2008 Tony Richards
+// Copyright (C)        2008 Matthew Alan Gray
 //
 //  This software is provided 'as-is', without any express or implied
 //  warranty.  In no event will the authors be held liable for any damages
@@ -23,49 +23,51 @@
 //  Tony Richards trichards@indiezen.com
 //  Matthew Alan Gray mgray@indiezen.org
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-#ifndef ZEN_ZPOSTGRES_DATABASE_SERVICE_FACTORY_HPP_INCLUDED
-#define ZEN_ZPOSTGRES_DATABASE_SERVICE_FACTORY_HPP_INCLUDED
+#include "DatabaseColumn.hpp"
 
-#include <Zen/Enterprise/Database/I_DatabaseServiceFactory.hpp>
+#include <Zen/Core/Utility/runtime_exception.hpp>
+
+#include <string>
+
+extern Zen::ZPostgres::DatabaseTypes gDatabaseTypes;
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 namespace Zen {
 namespace ZPostgres {
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-
-class DatabaseServiceFactory
-: public Database::I_DatabaseServiceFactory
+DatabaseColumn::DatabaseColumn(const std::string& _fieldName, int _fieldType)
+:   m_fieldName(_fieldName)
+,   m_fieldType(_fieldType)
 {
-    /// @name I_DatabaseServiceFactory implementation
-    /// @{
-public:
-    virtual pDatabaseService_type create(const std::string& _type, Configuration_type _config);
-    /// @}
+}
 
-    /// @name DatabaseServiceFactory implementation
-    /// @{
-private:
-    void destroy(wpDatabaseService_type _pService);
-    /// @}
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+DatabaseColumn::~DatabaseColumn()
+{
+}
 
-    /// @name Static methods
-    /// @{
-public:
-    static DatabaseServiceFactory& getSingleton();
-    /// @}
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+const std::string&
+DatabaseColumn::getFieldName() const
+{
+    return m_fieldName;
+}
 
-    /// @name 'Structors
-    /// @{
-public:
-             DatabaseServiceFactory();
-    virtual ~DatabaseServiceFactory();
-    /// @}
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+const std::type_info&
+DatabaseColumn::getType() const
+{
+    return gDatabaseTypes.getTypeInfo(m_fieldType);
+}
 
-};  // class DatabaseServiceFactory
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+int
+DatabaseColumn::getPGType() const
+{
+    return m_fieldType;
+}
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 }   // namespace ZPostgres
 }   // namespace Zen
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-
-#endif // ZEN_ZPOSTGRES_DATABASE_SERVICE_FACTORY_HPP_INCLUDED

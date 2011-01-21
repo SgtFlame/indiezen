@@ -1,5 +1,5 @@
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-// Zen Enterprise Framework
+// Zen Game Engine Framework
 //
 // Copyright (C) 2001 - 2011 Tony Richards
 // Copyright (C) 2008 - 2011 Matthew Alan Gray
@@ -23,71 +23,73 @@
 //  Tony Richards trichards@indiezen.com
 //  Matthew Alan Gray mgray@indiezen.org
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+#include "PostgresTypes.hpp"
+#include "DatabaseColumn.hpp"
 
-#include "DatabaseServiceFactory.hpp"
+#include <Zen/Core/Utility/runtime_exception.hpp>
 
-#include "DatabaseService.hpp"
+Zen::ZPostgres::DatabaseTypes gDatabaseTypes;
 
-#include <boost/bind.hpp>
-#include <boost/function.hpp>
-
-#include <stddef.h>
+#include <string>
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 namespace Zen {
 namespace ZPostgres {
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-DatabaseServiceFactory::DatabaseServiceFactory()
+class DataConverter
+{
+public:
+    virtual const std::type_info& getTypeInfo() = 0;
+};  // class DataConverter
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+DatabaseTypes::DatabaseTypes()
 {
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-DatabaseServiceFactory::~DatabaseServiceFactory()
+DatabaseTypes::~DatabaseTypes()
 {
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-static DatabaseServiceFactory sm_databaseServiceFactory;
-
-//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-DatabaseServiceFactory&
-DatabaseServiceFactory::getSingleton()
+const std::type_info&
+DatabaseTypes::getTypeInfo(int _fieldType) const
 {
-    return sm_databaseServiceFactory;
-}
+    ConversionMap_type::const_iterator iter =
+        m_dataConversionMap.find(_fieldType);
 
-//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-DatabaseServiceFactory::pDatabaseService_type
-DatabaseServiceFactory::create(const std::string &_type, DatabaseServiceFactory::Configuration_type _config)
-{
-    DatabaseService* pRawService = new DatabaseService(_config);
-
-    pDatabaseService_type pService(pRawService, boost::bind(&DatabaseServiceFactory::destroy, this, _1));
-
-    wpDatabaseService_type pWeakPtr(pService);
-
-    pRawService->setSelfReference(pWeakPtr);
-
-    return pService;
-}
-
-//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-void
-DatabaseServiceFactory::destroy(wpDatabaseService_type _pService)
-{
-    /// Fire the service's onDestroyEvent.
-    _pService->onDestroyEvent(_pService);
-
-    /// Delete the service
-    DatabaseService* pService = dynamic_cast<DatabaseService*>(_pService.get());
-
-    if (pService != NULL)
+    if (iter == m_dataConversionMap.end())
     {
-        delete pService;
+        // Default to a string
+        return typeid(std::string);
     }
     else
     {
-        // TODO Error!
+        return iter->second->getTypeInfo();
+    }
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+boost::any
+DatabaseTypes::getData(PGresult* _pResult, const DatabaseColumn& _column, int _rowNumber, int _fieldNumber) const
+{
+    ConversionMap_type::const_iterator iter =
+        m_dataConversionMap.find(_column.getPGType());
+
+    if (iter == m_dataConversionMap.end())
+    {
+        // Default to a string
+        std::string stringValue = stringValue;
+        stringValue = (const char*)PQgetvalue(_pResult, _rowNumber, _fieldNumber);
+
+        boost::any value(stringValue);
+        return value;
+    }
+    else
+    {
+        // TODO implement.
+        throw Utility::runtime_exception("DatabaseTypes::getData() : Error, not implemented");
     }
 }
 

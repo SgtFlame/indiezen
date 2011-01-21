@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <?indiezen version="1.0"?>
 <plugin
-   id="ZPhysX"
+   id="ZPostgres"
    name="IndieZen Postgres Plug-in"
    version="0.1.0"
    provider-name="IndieZen.org">
@@ -17,13 +17,13 @@
     </requires>
 
     <extension
-          point="IndieZen::Database::DatabaseService"
+          point="Zen::Enterprise::Database::DatabaseService"
           id="ZPostgres"
-          name="IndieZen Postgres Service"
+          name="Zen Postgres Service"
           type="postgres">
         <!-- This "type" attribute shouldn't be here; it should be down below but there's a bug in  -->
         <database-service
-              class="IndieZen::ZPostgres::DatabaseService"
+              class="Zen::ZPostgres::DatabaseService"
               type="postgres">
         </database-service>
     </extension>

@@ -110,7 +110,7 @@ DataElement::getStringValue() const
 
     std::stringstream value;
     boost::posix_time::time_facet* time_facet(
-        new boost::posix_time::time_facet("%Y-%m-%d %H:%M:%s")
+        new boost::posix_time::time_facet("%Y-%m-%d %H:%M:%S")
     );
 
     switch(m_type)

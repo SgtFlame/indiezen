@@ -135,6 +135,7 @@ DatabaseService::onDestroy(wpDatabaseConnection_type _pConnection)
             m_namedConnections.erase(iter);
 
             DatabaseConnection* pConn = dynamic_cast<DatabaseConnection*>(_pConnection.get());
+
             pConn->onDestroyEvent(_pConnection);
             delete pConn;
         }

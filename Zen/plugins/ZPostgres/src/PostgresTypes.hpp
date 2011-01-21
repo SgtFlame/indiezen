@@ -1,5 +1,5 @@
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-// Zen Enterprise Framework
+// Zen Game Engine Framework
 //
 // Copyright (C) 2001 - 2011 Tony Richards
 // Copyright (C) 2008 - 2011 Matthew Alan Gray
@@ -23,49 +23,57 @@
 //  Tony Richards trichards@indiezen.com
 //  Matthew Alan Gray mgray@indiezen.org
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-#ifndef ZEN_ZPOSTGRES_DATABASE_SERVICE_FACTORY_HPP_INCLUDED
-#define ZEN_ZPOSTGRES_DATABASE_SERVICE_FACTORY_HPP_INCLUDED
+#ifndef ZEN_ZPOSTGRES_POSTGRES_TYPES_HPP_INCLUDED
+#define ZEN_ZPOSTGRES_POSTGRES_TYPES_HPP_INCLUDED
 
-#include <Zen/Enterprise/Database/I_DatabaseServiceFactory.hpp>
+#include "libpq-fe.h"
+
+#include <boost/any.hpp>
+
+#include <string>
+#include <map>
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 namespace Zen {
 namespace ZPostgres {
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 
-class DatabaseServiceFactory
-: public Database::I_DatabaseServiceFactory
+class DataConverter;
+class DatabaseColumn;
+
+class DatabaseTypes
 {
-    /// @name I_DatabaseServiceFactory implementation
+    /// @name Types
     /// @{
 public:
-    virtual pDatabaseService_type create(const std::string& _type, Configuration_type _config);
     /// @}
 
-    /// @name DatabaseServiceFactory implementation
-    /// @{
-private:
-    void destroy(wpDatabaseService_type _pService);
-    /// @}
-
-    /// @name Static methods
+    /// @name DatabaseTypes implementation
     /// @{
 public:
-    static DatabaseServiceFactory& getSingleton();
+    /// Get the type_info for a specified field type.
+    const std::type_info& getTypeInfo(int _fieldType) const;
+
+    boost::any getData(PGresult* _pResult, const DatabaseColumn& _column, int _rowNumber, int _fieldNumber) const;
     /// @}
 
     /// @name 'Structors
-    /// @{
-public:
-             DatabaseServiceFactory();
-    virtual ~DatabaseServiceFactory();
+     DatabaseTypes();
+    ~DatabaseTypes();
     /// @}
 
-};  // class DatabaseServiceFactory
+    /// @name Member Variables
+    /// @{
+private:
+    typedef std::map<int, DataConverter*>           ConversionMap_type;
+    ConversionMap_type                              m_dataConversionMap;
+    /// @}
+
+};  // class DatabaseTypes
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 }   // namespace ZPostgres
 }   // namespace Zen
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 
-#endif // ZEN_ZPOSTGRES_DATABASE_SERVICE_FACTORY_HPP_INCLUDED
+#endif // ZEN_ZPOSTGRES_POSTGRES_TYPES_HPP_INCLUDED

@@ -70,7 +70,7 @@ DatabaseConnection::beginTransaction()
     else
     {
         DatabaseTransaction* pRawDatabaseTransaction = 
-            new DatabaseTransaction(this->m_pConnection);
+            new DatabaseTransaction(m_pConnection);
 
         pDatabaseTransaction_type pTransaction(pRawDatabaseTransaction,
             boost::bind(&DatabaseConnection::onDestroyTransaction,this,_1));

@@ -1,7 +1,8 @@
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 // Zen Enterprise Framework
 //
-// Copyright (C) 2001 - 2008 Tony Richards
+// Copyright (C) 2001 - 2011 Tony Richards
+// Copyright (C) 2008 - 2011 Matthew Alan Gray
 //
 //  This software is provided 'as-is', without any express or implied
 //  warranty.  In no event will the authors be held liable for any damages
@@ -20,13 +21,15 @@
 //  3. This notice may not be removed or altered from any source distribution.
 //
 //  Tony Richards trichards@indiezen.com
+//  Matthew Alan Gray mgray@indiezen.org
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-#ifndef INDIEZEN_ZPOSTGRES_DATABASE_CONNECTION_HPP_INCLUDED
-#define INDIEZEN_ZPOSTGRES_DATABASE_CONNECTION_HPP_INCLUDED
+#ifndef ZEN_ZPOSTGRES_DATABASE_CONNECTION_HPP_INCLUDED
+#define ZEN_ZPOSTGRES_DATABASE_CONNECTION_HPP_INCLUDED
 
 #include <Zen/Enterprise/Database/I_DatabaseConnection.hpp>
 #include <Zen/Enterprise/Database/I_DatabaseService.hpp>
 
+#include <Zen/Core/Memory/managed_ptr.hpp>
 #include <Zen/Core/Memory/managed_weak_ptr.hpp>
 
 #include <libpq-fe.h>
@@ -43,9 +46,8 @@ class DatabaseConnection
     /// @name Types
     /// @{
 public:
-    typedef Database::I_DatabaseService::Configuration_type                 Configuration_type;
+    typedef Database::I_DatabaseService::config_type                 config_type;
     typedef Memory::managed_ptr<Database::I_DatabaseService>         pDatabase_type;
-    typedef Memory::managed_weak_ptr<Database::I_DatabaseConnection> self_reference_type;
     /// @}
 
     /// @name I_DatabaseService implementation
@@ -54,23 +56,25 @@ public:
     virtual const std::string& getName() const;
     virtual pDatabaseTransaction_type beginTransaction();
     virtual void commitTransaction(pDatabaseTransaction_type _pDatabaseTransaction);
+    virtual void rollbackTransaction(pDatabaseTransaction_type _pDatabaseTransaction);
+    virtual std::string escapeString(const std::string& _string);
     /// @}
 
     /// @name DatabaseConnection implementation
     /// @{
 public:
     /// Give the connection an opportunity to keep a weak self-reference
-    void setSelfReference(self_reference_type _pReference);
+    //void setSelfReference(self_reference_type _pReference);
 
-    /// Disconnnects from the database and fires
-    /// the onDisconnectedEvent
-    void disconnect();
+    /// @name Event Handlers
+    /// @{
+    void onDestroyTransaction(wpDatabaseTransaction_type _pDatabaseTransaction);
     /// @}
 
     /// @name 'Structors
     /// @{
 public:
-             DatabaseConnection(pDatabase_type _pDatabase, const std::string& _name, Configuration_type& _config);
+             DatabaseConnection(pDatabase_type _pDatabase, const std::string& _name, PGconn* _pConnection);
     virtual ~DatabaseConnection();
     /// @}
 
@@ -80,21 +84,22 @@ private:
     /// Reference to the database for this connection.  This reference
     /// prevents the database object from being deleted while it has
     /// open connections.
-    pDatabase_type          m_pDatabase;
+    pDatabase_type              m_pDatabase;
 
-    bool                    m_bConnected;
-    std::string             m_name;
+    std::string                 m_name;
 
-    PGconn*                 m_pConnection;
+    PGconn*                     m_pConnection;
 
-    self_reference_type     m_pSelfReference;
+    /// Keep a weak pointer so the client application can let it
+    /// be destroyed when it goes out of scope.
+    wpDatabaseTransaction_type  m_pTransaction;
     /// @}
 
 };  // class DatabaseConnection
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 }   // namespace ZPostgres
-}   // namespace IndieZen
+}   // namespace Zen
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 
-#endif // INDIEZEN_ZPOSTGRES_DATABASE_CONNECTION_HPP_INCLUDED
+#endif // ZEN_ZPOSTGRES_DATABASE_CONNECTION_HPP_INCLUDED

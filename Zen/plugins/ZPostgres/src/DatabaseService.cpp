@@ -1,7 +1,8 @@
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 // Zen Enterprise Framework
 //
-// Copyright (C) 2001 - 2008 Tony Richards
+// Copyright (C) 2001 - 2011 Tony Richards
+// Copyright (C) 2008 - 2011 Matthew Alan Gray
 //
 //  This software is provided 'as-is', without any express or implied
 //  warranty.  In no event will the authors be held liable for any damages
@@ -20,6 +21,7 @@
 //  3. This notice may not be removed or altered from any source distribution.
 //
 //  Tony Richards trichards@indiezen.com
+//  Matthew Alan Gray mgray@indiezen.org
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 
 #include "DatabaseService.hpp"
@@ -29,6 +31,9 @@
 
 #include <Zen/Core/Threading/CriticalSection.hpp>
 #include <Zen/Core/Threading/MutexFactory.hpp>
+
+#include <Zen/Core/Utility/runtime_exception.hpp>
+
 #include <boost/bind.hpp>
 
 #include <sstream>
@@ -37,7 +42,7 @@
 namespace Zen {
 namespace ZPostgres {
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-DatabaseService::DatabaseService(Configuration_type _config)
+DatabaseService::DatabaseService(config_type& _config)
 {
     m_pConnectionsGuard = Threading::MutexFactory::create();
 }
@@ -49,8 +54,8 @@ DatabaseService::~DatabaseService()
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-void
-DatabaseService::connect(const std::string &_name, Configuration_type& _config, bool _asynchronous)
+DatabaseService::pDatabaseConnection_type
+DatabaseService::connect(const std::string &_name, config_type& _config, bool _asynchronous)
 {
     Threading::CriticalSection lock(m_pConnectionsGuard);
 
@@ -60,20 +65,40 @@ DatabaseService::connect(const std::string &_name, Configuration_type& _config, 
         pDatabaseConnection_type pConn(iter->second);
 
         onConnectedEvent(pConn);
-        return;
+        return pConn;
     }
 
-    DatabaseConnection* pRawPointer = new DatabaseConnection(getSelfReference().lock(), _name, _config);
+    std::stringstream connInfo;
+    config_type::const_iterator configIter = _config.begin();
+    while (configIter != _config.end())
+    {
+        if (configIter->first != "text")
+        {
+            connInfo << configIter->first << "=\'" << configIter->second << "\' ";
+        }
+        configIter++;
+    }
 
-    pDatabaseConnection_type pConn(pRawPointer, boost::bind(&DatabaseService::onDestroy, this, _1));
+    PGconn* pConnection = PQconnectdb(connInfo.str().c_str());
 
-    wpDatabaseConnection_type pWeakConn(pConn);
-    m_namedConnections[_name] = pWeakConn;
+    if (PQstatus(pConnection) == CONNECTION_OK)
+    {
+        pDatabaseConnection_type pConn(
+            new DatabaseConnection(getSelfReference().lock(), _name, pConnection),
+            boost::bind(&DatabaseService::onDestroy, this, _1)
+        );
 
-    pRawPointer->setSelfReference(pWeakConn);
+        wpDatabaseConnection_type pWeakConn(pConn);
+        m_namedConnections[_name] = pWeakConn;
 
-    onConnectedEvent(pConn);
-    
+        onConnectedEvent(pConn);
+
+        return pConn;
+    }
+    else
+    {
+        return pDatabaseConnection_type();
+    }
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
@@ -114,5 +139,5 @@ DatabaseService::onDestroy(wpDatabaseConnection_type _pConnection)
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 }   // namespace ZPostgres
-}   // namespace IndieZen
+}   // namespace Zen
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
