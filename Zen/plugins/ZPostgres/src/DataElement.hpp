@@ -1,8 +1,8 @@
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 // Zen Enterprise Framework
 //
-// Copyright (C) 2001 - 2009 Tony Richards
-// Copyright (C) 2008 - 2010 Matthew Alan Gray
+// Copyright (C) 2001 - 2011 Tony Richards
+// Copyright (C) 2008 - 2011 Matthew Alan Gray
 //
 //  This software is provided 'as-is', without any express or implied
 //  warranty.  In no event will the authors be held liable for any damages
@@ -23,27 +23,25 @@
 //  Tony Richards trichards@indiezen.com
 //  Matthew Alan Gray mgray@indiezen.org
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-#ifndef ZEN_DATAMODEL_DATA_ELEMENT_HPP_INCLUDED
-#define ZEN_DATAMODEL_DATA_ELEMENT_HPP_INCLUDED
+#ifndef ZEN_ZPOSTGRES_DATA_ELEMENT_HPP_INCLUDED
+#define ZEN_ZPOSTGRES_DATA_ELEMENT_HPP_INCLUDED
 
-#include "../I_DataElement.hpp"
+#include <Zen/Enterprise/DataModel/I_DataElement.hpp>
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 namespace Zen {
-namespace Enterprise {
-namespace DataModel {
+namespace ZPostgres {
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-;
 
 class DataElement
-:   public I_DataElement
+:   public Zen::Enterprise::DataModel::I_DataElement
 {
     /// @name Types
     /// @{
 public:
     /// @}
 
-    /// @name I_DataElement implementation.
+    /// @name I_DataElement implementation
     /// @{
 public:
     virtual UnderlyingType getUnderlyingType() const;
@@ -67,12 +65,6 @@ public:
     virtual std::string getDBString() const;
     /// @}
 
-    /// @name DataElement implementation
-    /// @{
-public:
-    static std::string escapeString(const std::string& _string);
-    /// @}
-
     /// @name 'Structors
     /// @{
 public:
@@ -83,17 +75,15 @@ public:
     /// @name Member Variables
     /// @{
 private:
-    boost::any      m_value;
-    UnderlyingType  m_type;
-    bool            m_dirty;
+    typedef Zen::Memory::managed_ptr<Zen::Enterprise::DataModel::I_DataElement> pElement_type;
+    pElement_type       m_pElement;
     /// @}
 
-};  // class DataElement
+};  // class I_DataElement
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-}   // namespace DataModel
-}   // namespace Enterprise
+}   // namespace ZPostgres
 }   // namespace Zen
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 
-#endif // ZEN_DATAMODEL_DATA_ELEMENT_HPP_INCLUDED
+#endif // ZEN_ZPOSTGRES_DATA_ELEMENT_HPP_INCLUDED

@@ -59,7 +59,7 @@ public:
     virtual pDynamicQuery_type createDynamicQuery();
     virtual void executeQuery(pQuery_type _pQuery, pQueryResultHandler_type _pQueryResultHandler);
     virtual void executeQuery(pQuery_type _pQuery);
-    virtual pFutureKey_type executeInsert(pQuery_type _pQuery);
+    virtual pFutureKey_type executeInsert(pQuery_type _pQuery, const std::string& _keyName);
     virtual pDatabaseCommand_type createCommand();
     virtual void executeCommand(pDatabaseCommand_type _pCommand, pCommandResultHandler_type _pCommandResultHandler);
     virtual bool isFinalized() const;

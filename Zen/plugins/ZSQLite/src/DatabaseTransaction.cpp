@@ -174,7 +174,7 @@ DatabaseTransaction::executeQuery(pQuery_type _pQuery)
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 DatabaseTransaction::pFutureKey_type
-DatabaseTransaction::executeInsert(pQuery_type _pQuery)
+DatabaseTransaction::executeInsert(pQuery_type _pQuery, const std::string& _keyName)
 {
     executeQuery(_pQuery);
 

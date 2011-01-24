@@ -361,7 +361,7 @@ AccountGroupDataMap::update(pDomainObject_type _pDomainObject)
 
         // Execute the query.
         Zen::Database::I_DatabaseTransaction::pFutureKey_type 
-            pKey(pTransaction->executeInsert(pQuery));
+            pKey(pTransaction->executeInsert(pQuery, "\"accountGroupId\""));
 
         _pDomainObject->getAccountGroupId() = pKey->getValue();
         

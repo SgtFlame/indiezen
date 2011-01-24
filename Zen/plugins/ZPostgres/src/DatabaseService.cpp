@@ -26,6 +26,7 @@
 
 #include "DatabaseService.hpp"
 #include "DatabaseConnection.hpp"
+#include "DataElement.hpp"
 
 #include <Zen/Core/Memory/managed_weak_ptr.hpp>
 
@@ -102,6 +103,13 @@ DatabaseService::connect(const std::string &_name, config_type& _config, bool _a
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+DatabaseService::pElement_type
+DatabaseService::createElement() const
+{
+    return pElement_type(new DataElement, &onDestroyElement);
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 void
 DatabaseService::onDestroy(wpDatabaseConnection_type _pConnection)
 {
@@ -134,6 +142,23 @@ DatabaseService::onDestroy(wpDatabaseConnection_type _pConnection)
     else
     {
         // TODO Severe error, should never get here
+    }
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+void
+DatabaseService::onDestroyElement(wpElement_type _pElement)
+{
+    DataElement* pElement =
+        dynamic_cast<DataElement*>(_pElement.get());
+
+    if (pElement != NULL)
+    {
+        delete pElement;
+    }
+    else
+    {
+        throw Zen::Utility::runtime_exception("DatabaseService::onDestroy(wpElement) : Invalid type.");
     }
 }
 

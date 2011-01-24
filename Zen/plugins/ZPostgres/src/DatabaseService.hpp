@@ -45,20 +45,23 @@ class DatabaseService
     /// @name Types
     /// @{
 public:
-    typedef Memory::managed_weak_ptr<Database::I_DatabaseConnection>    wpDatabaseConnection_type;
-    typedef std::map<std::string,  wpDatabaseConnection_type>           connections_types;
+    typedef Memory::managed_weak_ptr<Database::I_DatabaseConnection>        wpDatabaseConnection_type;
+    typedef Memory::managed_weak_ptr<Enterprise::DataModel::I_DataElement>  wpElement_type;
+    typedef std::map<std::string,  wpDatabaseConnection_type>               connections_types;
     /// @}
 
     /// @name I_DatabaseService implementation
     /// @{
 public:
     virtual pDatabaseConnection_type connect(const std::string& _name, config_type& _config, bool _asynchronous = false);
+    virtual pElement_type createElement() const;
     /// @}
 
     /// @name Event handlers
     /// @{
 protected:
     void onDestroy(wpDatabaseConnection_type _pConnection);
+    static void onDestroyElement(wpElement_type _pElement);
     /// @}
 
     /// @name 'Structors

@@ -47,7 +47,6 @@ class DatabaseConnection
     /// @{
 public:
     typedef Database::I_DatabaseService::config_type                 config_type;
-    typedef Memory::managed_ptr<Database::I_DatabaseService>         pDatabase_type;
     /// @}
 
     /// @name I_DatabaseService implementation
@@ -58,6 +57,7 @@ public:
     virtual void commitTransaction(pDatabaseTransaction_type _pDatabaseTransaction);
     virtual void rollbackTransaction(pDatabaseTransaction_type _pDatabaseTransaction);
     virtual std::string escapeString(const std::string& _string);
+    virtual pDatabaseService_type getDatabaseService() const;
     /// @}
 
     /// @name DatabaseConnection implementation
@@ -74,7 +74,7 @@ public:
     /// @name 'Structors
     /// @{
 public:
-             DatabaseConnection(pDatabase_type _pDatabase, const std::string& _name, PGconn* _pConnection);
+             DatabaseConnection(pDatabaseService_type _pDatabase, const std::string& _name, PGconn* _pConnection);
     virtual ~DatabaseConnection();
     /// @}
 
@@ -84,7 +84,7 @@ private:
     /// Reference to the database for this connection.  This reference
     /// prevents the database object from being deleted while it has
     /// open connections.
-    pDatabase_type              m_pDatabase;
+    pDatabaseService_type       m_pDatabase;
 
     std::string                 m_name;
 

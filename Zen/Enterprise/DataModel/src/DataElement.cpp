@@ -47,7 +47,7 @@ DataElement::~DataElement()
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 DataElement::UnderlyingType
-DataElement::getUnderlyingType()
+DataElement::getUnderlyingType() const
 {
     return m_type;
 }
@@ -264,6 +264,55 @@ DataElement::operator=(const boost::posix_time::ptime& _value)
 DataElement::operator boost::posix_time::ptime()
 {
     return getDateTimeValue();
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+std::string
+DataElement::getDBString() const
+{
+    std::stringstream stream;
+
+    if (m_type == STRING || m_type == DATETIME)
+    {
+        stream << "\'";
+        stream << escapeString(getStringValue());
+        stream << "\'";
+    }
+    else
+    {
+        stream << getStringValue();
+    }
+
+    return stream.str();
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+std::string
+DataElement::escapeString(const std::string& _string)
+{
+    std::string str(_string);
+
+    // Escape the project name
+    std::string searchString("\'"); 
+    std::string replaceString("\'\'");
+
+    std::string::size_type pos = 0;
+    while ((pos = _string.find(searchString, pos)) != std::string::npos) 
+    {
+        str.replace(pos, searchString.size(), replaceString);
+        pos++;
+    }
+
+    searchString = "\"\"";
+    pos = 0;
+
+    while ((pos = _string.find(searchString, pos)) != std::string::npos) 
+    {
+        str.replace(pos, searchString.size(), replaceString);
+        pos++;
+    }
+
+    return str;
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~

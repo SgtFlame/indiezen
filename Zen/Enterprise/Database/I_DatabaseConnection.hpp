@@ -40,12 +40,15 @@ namespace Database {
 
 class I_MutableDatabaseSchema;
 class I_ImmutableDatabaseSchema;
+class I_DatabaseService;
 
 class DATABASE_DLL_LINK I_DatabaseConnection
 {
     /// @name Types
     /// @{
 public:
+    typedef Zen::Memory::managed_ptr<I_DatabaseService>             pDatabaseService_type;
+
     typedef Zen::Memory::managed_ptr<I_DatabaseTransaction>         pDatabaseTransaction_type;
     typedef Zen::Memory::managed_weak_ptr<I_DatabaseTransaction>    wpDatabaseTransaction_type;
 
@@ -88,6 +91,9 @@ public:
 
     /// Escape a string so as to avoid SQL injection.
     virtual std::string escapeString(const std::string& _string) = 0;
+
+    /// Get the parent database service.
+    virtual pDatabaseService_type getDatabaseService() const = 0;
     /// @}
 
     /// @name Events

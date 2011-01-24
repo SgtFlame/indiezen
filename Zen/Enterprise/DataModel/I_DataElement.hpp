@@ -68,7 +68,7 @@ public:
     /// @{
 public:
     /// Get the underlying data type.
-    virtual UnderlyingType getUnderlyingType() = 0;
+    virtual UnderlyingType getUnderlyingType() const = 0;
 
     /// @return true if this data element is a NULL value.
     virtual bool isNull() = 0;
@@ -106,6 +106,8 @@ public:
     virtual I_DataElement& operator=(const boost::posix_time::ptime& _value) = 0;
     virtual operator boost::posix_time::ptime() = 0;
 
+    /// @return the database specific string
+    virtual std::string getDBString() const = 0;
     /// @}
 
     /// @name Static factory method

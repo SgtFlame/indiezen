@@ -30,12 +30,30 @@ source_group(
 set ( ZPostgres_SRC
     CommandQueue.hpp
     I_Command.hpp
+    src/DatabaseColumn.cpp
+    src/DatabaseColumn.hpp
+    src/DatabaseCommand.cpp
+    src/DatabaseCommand.hpp
     src/DatabaseConnection.cpp
     src/DatabaseConnection.hpp
+    src/DatabaseDynamicQuery.cpp
+    src/DatabaseDynamicQuery.hpp
+    src/DatabaseQuery.cpp
+    src/DatabaseQuery.hpp
+    src/DatabaseResult.cpp
+    src/DatabaseResult.hpp
+    src/DatabaseRow.cpp
+    src/DatabaseRow.hpp
     src/DatabaseService.cpp
     src/DatabaseService.hpp
     src/DatabaseServiceFactory.cpp
     src/DatabaseServiceFactory.hpp
+    src/DatabaseStaticQuery.cpp
+    src/DatabaseStaticQuery.hpp
+    src/DatabaseTransaction.cpp
+    src/DatabaseTransaction.hpp
+    src/PostgresTypes.cpp
+    src/PostgresTypes.hpp
     src/ZPostgresPlugin.cpp
 
     )
