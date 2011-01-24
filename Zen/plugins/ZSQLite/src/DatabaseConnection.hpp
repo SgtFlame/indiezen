@@ -44,7 +44,6 @@ class DatabaseConnection
     /// @{
 public:
     typedef Database::I_DatabaseService::config_type                    config_type;
-    typedef Memory::managed_ptr<Database::I_DatabaseService>            pDatabase_type;
     //typedef Memory::managed_weak_ptr<Database::I_DatabaseConnection>    self_reference_type;
     /// @}
 
@@ -56,6 +55,7 @@ public:
     virtual void commitTransaction(pDatabaseTransaction_type _pDatabaseTransaction);
     virtual void rollbackTransaction(pDatabaseTransaction_type _pDatabaseTransaction);
     virtual std::string escapeString(const std::string& _string);
+    virtual pDatabaseService_type getDatabaseService() const;
     /// @}
 
     /// @name DatabaseConnection implementation
@@ -73,7 +73,7 @@ public:
     /// @name 'Structors
     /// @{
 public:
-             DatabaseConnection(pDatabase_type _pDatabase, const std::string& _name, sqlite3* _pConnection);
+             DatabaseConnection(pDatabaseService_type _pDatabase, const std::string& _name, sqlite3* _pConnection);
     virtual ~DatabaseConnection();
     /// @}
 
@@ -86,7 +86,7 @@ private:
     /// TR - I'm not sure I agree with this design point.  Possibly the destruction
     /// of the database object should destroy all open connections instead.  Common
     /// practice is to only have weak pointers going up towards a parent.
-    pDatabase_type              m_pDatabase;
+    pDatabaseService_type       m_pDatabase;
 
     std::string                 m_name;
 

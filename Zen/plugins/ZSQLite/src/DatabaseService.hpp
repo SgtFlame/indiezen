@@ -1,7 +1,8 @@
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 // Zen Game Engine Framework
 //
-// Copyright (C) 2001 - 2008 Tony Richards
+// Copyright (C) 2001 - 2011 Tony Richards
+// Copyright (C) 2008 - 2011 Matthew Alan Gray
 //
 //  This software is provided 'as-is', without any express or implied
 //  warranty.  In no event will the authors be held liable for any damages
@@ -52,6 +53,7 @@ public:
     /// @{
 public:
     virtual pDatabaseConnection_type connect(const std::string& _name, config_type& _config, bool _asynchronous = false);
+    virtual pElement_type createElement() const;
     /// @}
 
     /// @name DatabaseService implementation

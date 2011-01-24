@@ -34,6 +34,7 @@
 
 #include <boost/bind.hpp>
 #include <boost/functional/hash.hpp>
+#include <boost/lexical_cast.hpp>
 #include <sstream>
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
@@ -112,10 +113,11 @@ DatabaseTransaction::executeQuery(pQuery_type _pQuery,
 
         //while(*pSQL != '\0')
         //{
-            std::string statementName = generateStatementName(pRawQuery);
+            //std::string statementName = generateStatementName(pRawQuery);
             PGresult* pResult = PQprepare(
                 m_pConnection,
-                statementName.c_str(),
+                //statementName.c_str(),
+                "",
                 pSQL,
                 0,
                 NULL
@@ -123,8 +125,10 @@ DatabaseTransaction::executeQuery(pQuery_type _pQuery,
 
             if (PQresultStatus(pResult) == PGRES_COMMAND_OK)
             {
+                //DatabaseResult* pRawDatabaseResult =
+                //    new DatabaseResult(m_pConnection, statementName);
                 DatabaseResult* pRawDatabaseResult =
-                    new DatabaseResult(m_pConnection, statementName);
+                    new DatabaseResult(m_pConnection, "");
 
                 pDatabaseResult_type pDatabaseResult(
                     pRawDatabaseResult,
@@ -163,12 +167,13 @@ DatabaseTransaction::executeQuery(pQuery_type _pQuery)
     {
         const char* pSQL = pRawQuery->getQuery().c_str();
 
-        while(*pSQL != '\0')
-        {
-            std::string statementName = generateStatementName(pRawQuery);
+        //while(*pSQL != '\0')
+        //{
+            //std::string statementName = generateStatementName(pRawQuery);
             PGresult* pResult = PQprepare(
                 m_pConnection,
-                statementName.c_str(),
+                //statementName.c_str(),
+                "",
                 pSQL,
                 0,
                 NULL
@@ -176,8 +181,10 @@ DatabaseTransaction::executeQuery(pQuery_type _pQuery)
 
             if (PQresultStatus(pResult) == PGRES_COMMAND_OK)
             {
+                //DatabaseResult* pRawDatabaseResult =
+                //    new DatabaseResult(m_pConnection, statementName);
                 DatabaseResult* pRawDatabaseResult =
-                    new DatabaseResult(m_pConnection, statementName);
+                    new DatabaseResult(m_pConnection, "");
 
                 pDatabaseResult_type pDatabaseResult(
                     pRawDatabaseResult,
@@ -193,7 +200,7 @@ DatabaseTransaction::executeQuery(pQuery_type _pQuery)
                         << std::string(PQerrorMessage(m_pConnection));
                 throw Utility::runtime_exception(message.str().c_str());
             }
-        }
+        //}
     }
     else
     {
@@ -203,7 +210,7 @@ DatabaseTransaction::executeQuery(pQuery_type _pQuery)
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 DatabaseTransaction::pFutureKey_type
-DatabaseTransaction::executeInsert(pQuery_type _pQuery)
+DatabaseTransaction::executeInsert(pQuery_type _pQuery, const std::string& _keyName)
 {
     class InsertResultHandler
     :   public I_QueryResultHandler
@@ -213,39 +220,83 @@ DatabaseTransaction::executeInsert(pQuery_type _pQuery)
     public:
         /// @}
 
+        /// @name Inner Structures
+        /// @{
+    public:
+        class InsertResultRowVisitor
+        :   public Zen::Database::I_DatabaseResult::I_ResultVisitor
+        {
+        public:
+            class InsertResultFieldVisitor
+            :   public Zen::Database::I_DatabaseRow::I_FieldVisitor
+            {
+            public:
+                virtual void begin()
+                {
+                }
+
+                virtual void visit(const Zen::Database::I_DatabaseColumn& _column, const boost::any& _value)
+                {
+                    m_pKey->setValue(
+                        boost::lexical_cast<boost::uint64_t, std::string>(
+                            boost::any_cast<std::string>(_value)
+                        )
+                    );
+                }
+
+                virtual void end()
+                {
+                }
+
+                InsertResultFieldVisitor(pFutureKey_type& _pKey)
+                :   m_pKey(_pKey)
+                {
+                }
+
+            private:
+                pFutureKey_type&    m_pKey;
+            };  // class InsertResultFieldVisitor
+
+            virtual void begin()
+            {
+            }
+
+            virtual void visit(const Zen::Database::I_DatabaseRow& _row)
+            {
+                InsertResultFieldVisitor visitor(m_pKey);
+                _row.getFields(visitor);
+            }
+
+            virtual void end()
+            {
+            }
+
+            InsertResultRowVisitor(pFutureKey_type& _pKey)
+            :   m_pKey(_pKey)
+            {
+            }
+
+        private:
+            pFutureKey_type&    m_pKey;
+
+        };  // class InsertResultRowVisitor
+        /// @}
+
         /// @name I_QueryResultHandler implementation
         /// @{
     public:
         virtual void handleResult(pDatabaseResult_type _pResult)
         {
-            DatabaseResult* pResult =
-                dynamic_cast<DatabaseResult*>(_pResult.get());
-
-            if (pResult != NULL)
-            {
-                pResult->finish();
-
-                PGresult* pPGResult =
-                    pResult->getPGResult();
-
-                m_pKey->setValue(PQoidValue(pPGResult));
-            }
-            else
-            {
-                m_pKey->setValue(0);
-            }
+            InsertResultRowVisitor visitor(m_pKey);
+            _pResult->getResults(visitor);
         }
         /// @}
 
         /// @name 'Structors
         /// @{
     public:
-        InsertResultHandler(pFutureKey_type _pKey)
+        InsertResultHandler(pFutureKey_type& _pKey)
         :   m_pKey(_pKey)
-        {
-        }
-
-        virtual ~InsertResultHandler()
         {
         }
         /// @}
@@ -253,7 +304,7 @@ DatabaseTransaction::executeInsert(pQuery_type _pQuery)
         /// @name Member Variables
         /// @{
     private:
-        pFutureKey_type         m_pKey;
+        pFutureKey_type&         m_pKey;
         /// @}
 
     };  // class InsertResultHandler
@@ -265,6 +316,20 @@ DatabaseTransaction::executeInsert(pQuery_type _pQuery)
     pQueryResultHandler_type pHandler(
         new InsertResultHandler(pKey)
     );
+
+    DatabaseQuery* pQuery = 
+        dynamic_cast<DatabaseQuery*>(_pQuery.get());
+    assert(pQuery != NULL);
+
+    std::stringstream stream;
+    stream << pQuery->getQuery();
+    stream << " RETURNING " << _keyName;
+
+    DatabaseStaticQuery* pStaticQuery =
+        dynamic_cast<DatabaseStaticQuery*>(_pQuery.get());
+    assert(pStaticQuery != NULL);
+
+    pStaticQuery->setQuery(stream.str());
 
     executeQuery(_pQuery, pHandler);
 

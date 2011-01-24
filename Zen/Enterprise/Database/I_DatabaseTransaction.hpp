@@ -107,7 +107,7 @@ public:
     /// Execute a query that is an insert statement.
     /// This will return a future value that is the auto-increment 
     /// primary key value.
-    virtual pFutureKey_type executeInsert(pQuery_type _pQuery) = 0;
+    virtual pFutureKey_type executeInsert(pQuery_type _pQuery, const std::string& _keyName) = 0;
 
     /// @brief Create a command.
     ///

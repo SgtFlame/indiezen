@@ -39,7 +39,7 @@
 namespace Zen {
 namespace ZPostgres {
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-DatabaseConnection::DatabaseConnection(pDatabase_type _pDatabase, const std::string& _name, PGconn* _pConnection)
+DatabaseConnection::DatabaseConnection(pDatabaseService_type _pDatabase, const std::string& _name, PGconn* _pConnection)
 :   m_pDatabase(_pDatabase)
 ,   m_name(_name)
 ,   m_pConnection(_pConnection)
@@ -151,6 +151,13 @@ DatabaseConnection::escapeString(const std::string& _string)
     }
 
     return str;
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+DatabaseConnection::pDatabaseService_type
+DatabaseConnection::getDatabaseService() const
+{
+    return m_pDatabase;
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~

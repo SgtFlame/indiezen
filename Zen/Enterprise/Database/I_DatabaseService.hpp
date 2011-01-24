@@ -37,6 +37,11 @@
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 namespace Zen {
+    namespace Enterprise {
+        namespace DataModel {
+            class I_DataElement;
+        }   // namespace DataModel
+    }   // namespace Enterprise
 namespace Database {
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 class I_DatabaseConnection;
@@ -47,16 +52,18 @@ class DATABASE_DLL_LINK I_DatabaseService
     /// @name Types
     /// @{
 public:
-    typedef std::string                                         index_type;
+    typedef std::string                                                     index_type;
 
-    typedef Zen::Memory::managed_ptr<I_DatabaseService>         pDatabaseService_type;
-    typedef Zen::Memory::managed_weak_ptr<I_DatabaseService>    wpDatabaseService_type;
-    typedef Zen::Memory::managed_ptr<I_DatabaseConnection>      pDatabaseConnection_type;
+    typedef Zen::Memory::managed_ptr<I_DatabaseService>                     pDatabaseService_type;
+    typedef Zen::Memory::managed_weak_ptr<I_DatabaseService>                wpDatabaseService_type;
+    typedef Zen::Memory::managed_ptr<I_DatabaseConnection>                  pDatabaseConnection_type;
 
-    typedef Zen::Event::Event<wpDatabaseService_type>           ServiceEvent_type;
-    typedef Zen::Event::Event<pDatabaseConnection_type>         ConnectionEvent_type;
+    typedef Zen::Event::Event<wpDatabaseService_type>                       ServiceEvent_type;
+    typedef Zen::Event::Event<pDatabaseConnection_type>                     ConnectionEvent_type;
 
-    typedef const std::map<std::string, std::string>            config_type;
+    typedef Zen::Memory::managed_ptr<Enterprise::DataModel::I_DataElement>  pElement_type;
+
+    typedef const std::map<std::string, std::string>                        config_type;
     /// @}
 
     /// @name I_DatabaseService interface.
@@ -76,6 +83,9 @@ public:
     ///             asynchronous.  Either way, the database connection is returned
     ///             using the onConnectedEvent.
     virtual pDatabaseConnection_type connect(const std::string& _name, config_type& _config, bool _asynchronous = false) = 0;
+
+    /// Factory method.
+    virtual pElement_type createElement() const = 0;
     /// @}
 
     /// @name Static methods

@@ -1,7 +1,8 @@
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 // Zen Game Engine Framework
 //
-// Copyright (C) 2001 - 2009 Tony Richards
+// Copyright (C) 2001 - 2011 Tony Richards
+// Copyright (C) 2008 - 2011 Matthew Alan Gray
 //
 //  This software is provided 'as-is', without any express or implied
 //  warranty.  In no event will the authors be held liable for any damages
@@ -36,6 +37,8 @@
 #include <Zen/Core/Threading/MutexFactory.hpp>
 
 #include <Zen/Core/Utility/runtime_exception.hpp>
+
+#include <Zen/Enterprise/DataModel/I_DataElement.hpp>
 
 #include <boost/bind.hpp>
 
@@ -116,6 +119,13 @@ DatabaseService::connect(const std::string &_name, config_type& _config, bool _a
     onConnectedEvent(pConn);
 
     return pConn;
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+DatabaseService::pElement_type
+DatabaseService::createElement() const
+{
+    return Zen::Enterprise::DataModel::I_DataElement::create();
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
