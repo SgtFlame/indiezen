@@ -21,8 +21,9 @@
       $ENV{ProgramFiles}/PostgreSQL/*/include
       $ENV{SystemDrive}Program Files/PostgreSQL/*/include
       )
+message("POSTGRESQL_INCLUDE_DIR: ${POSTGRESQL_INCLUDE_DIR}")
       
-  find_library(POSTGRESQL_LIBRARIES NAMES libpq
+  find_library(POSTGRESQL_LIBRARIES NAMES libpq pq
       PATHS
       /usr/lib
       /usr/local/lib
@@ -33,6 +34,7 @@
       $ENV{ProgramFiles}/PostgreSQL/*/lib
       $ENV{SystemDrive}/PostgreSQL/*/lib
       )
+message("POSTGRESQL_LIBRARIES: ${POSTGRESQL_LIBRARIES}")
       
   if(POSTGRESQL_INCLUDE_DIR AND POSTGRESQL_LIBRARIES)
     set(POSTGRESQL_FOUND TRUE)

@@ -2,7 +2,8 @@
 // Zen Core Framework
 //
 // Copyright (C) 2006 - 2007 John Givler
-// Copyright (C) 2006 - 2009 Tony Richards
+// Copyright (C) 2006 - 2011 Tony Richards
+// Copyright (C) 2008 - 2011 Matthew Alan Gray
 //
 //  This software is provided 'as-is', without any express or implied
 //  warranty.  In no event will the authors be held liable for any damages
@@ -25,8 +26,10 @@
 //
 //  20080614 TR -   Original implementation based heavily on Dr. G's
 //                  SynchronizedSharedPtr<>.
-//  20080709 TR -	Separated some of the managed_ptr out into this class so
+//  20080709 TR -   Separated some of the managed_ptr out into this class so
 //                  that it can be more readily manipulated.
+//  20110204 MG -   Added implementations for serialize() methods and added
+//                  the is_serializable<> trait for boost::serialization support
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 
 #ifndef ZEN_MEMORY_MANAGED_PTR_HPP_INCLUDED
@@ -40,6 +43,12 @@
 #include <stddef.h>
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+namespace boost {
+namespace archive {
+    class polymorphic_iarchive;
+    class polymorphic_oarchive;
+} // namespace archive
+} // namespace boost
 namespace Zen {
 namespace Memory {
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
@@ -103,6 +112,9 @@ public:
     /// Check to see if this is a valid reference.
     /// The value returned should be considered volatile
     bool isValid() const;
+
+    void serialize(boost::archive::polymorphic_iarchive& _archive, const int _version);
+    void serialize(boost::archive::polymorphic_oarchive& _archive, const int _version);
     /// @}
 
     /// @name Operators
@@ -416,6 +428,30 @@ bool
 managed_ptr<element_type>::isValid() const
 {
     return m_payload.isValid();
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+template<typename element_type>
+inline
+void
+managed_ptr<element_type>::serialize(boost::archive::polymorphic_iarchive& _archive, const int _version)
+{
+    /// You cannot use this method if the type is not serializable
+    BOOST_STATIC_ASSERT(is_serializable<element_type>::value);
+
+    m_payload.serialize(_archive, _version, is_managed_by_factory<element_type>());
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+template<typename element_type>
+inline
+void
+managed_ptr<element_type>::serialize(boost::archive::polymorphic_oarchive& _archive, const int _version)
+{
+    /// You cannot use this method if the type is not serializable
+    BOOST_STATIC_ASSERT(is_serializable<element_type>::value);
+
+    m_payload.serialize(_archive, _version, is_managed_by_factory<element_type>());
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~

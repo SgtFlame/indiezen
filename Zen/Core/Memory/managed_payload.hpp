@@ -2,7 +2,8 @@
 // Zen Core Framework
 //
 // Copyright (C) 2006 - 2007 John Givler
-// Copyright (C) 2006 - 2008 Tony Richards
+// Copyright (C) 2006 - 2011 Tony Richards
+// Copyright (C) 2008 - 2011 Matthew Alan Gray
 //
 //  This software is provided 'as-is', without any express or implied
 //  warranty.  In no event will the authors be held liable for any damages
@@ -22,9 +23,12 @@
 //
 //  John S. Givler, Ph.D.(Computer Science) - Dr.John.S.Givler@Givler.com
 //  Tony Richards                           - trichards@indiezen.com
+//  Matthew Alan Gray                       - mgray@hatboystudios.com
 //
-//  20080709 TR -	Separated some of the managed_ptr out into this class so
+//  20080709 TR -   Separated some of the managed_ptr out into this class so
 //                  that it can be more readily manipulated.
+//  20110204 MG -   Added implementations for serialize() methods and added
+//                  the is_serializable<> trait for boost::serialization support
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 #ifndef ZEN_MEMORY_MANAGED_PAYLOAD_HPP_INCLUDED
 #define ZEN_MEMORY_MANAGED_PAYLOAD_HPP_INCLUDED
@@ -49,6 +53,12 @@
 #endif  // ENABLE_SYNCH_PTR_PRIVATE_ALLOC
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+namespace boost {
+namespace archive {
+    class polymorphic_iarchive;
+    class polymorphic_oarchive;
+} // namespace archive
+} // namespace boost
 namespace Zen {
 namespace Memory {
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
@@ -59,6 +69,10 @@ template<typename element_type> class managed_ptr;
 /// Defaults to false
 template<typename T>
 struct is_managed_by_factory : public boost::false_type{};
+
+/// Is Serializable trait
+template<typename T>
+struct is_serializable : public boost::false_type{};
 
 #ifdef ENABLE_SYNCH_PTR_PRIVATE_ALLOC
 struct UseCount_type
@@ -187,6 +201,10 @@ private:
     /// The value returned should be considered volatile
     bool isValid() const;
 
+    void serialize(boost::archive::polymorphic_iarchive& _archive, const int _version, const boost::true_type&);
+    void serialize(boost::archive::polymorphic_iarchive& _archive, const int _version, const boost::false_type&);
+    void serialize(boost::archive::polymorphic_oarchive& _archive, const int _version, const boost::true_type&);
+    void serialize(boost::archive::polymorphic_oarchive& _archive, const int _version, const boost::false_type&);
 private:
     /// Get a new counter from the pool
     /// Use returnCounter to return the counter to the pool
@@ -477,6 +495,70 @@ bool
 managed_payload<element_type>::isValid() const
 {
     return m_pElement != NULL;
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+template<typename element_type>
+inline
+void
+managed_payload<element_type>::serialize(boost::archive::polymorphic_iarchive& _archive, const int _version, const boost::true_type&)
+{
+    if (m_pElement == NULL)
+    {
+        m_pElement == element_type::create();
+        borrowCounter();
+
+        m_pDestroyMethod = new DestroyMethod<element_type>(element_type::destroy, managed_weak_ptr<typename element_type>(this));
+    }
+
+    _archive & *m_pElement;
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+template<typename element_type>
+inline
+void
+managed_payload<element_type>::serialize(boost::archive::polymorphic_iarchive& _archive, const int _version, const boost::false_type&)
+{
+    if (m_pElement == NULL)
+    {
+        m_pElement = element_type::create();
+        borrowCounter();
+    }
+
+    _archive & *m_pElement;
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+template<typename element_type>
+inline
+void
+managed_payload<element_type>::serialize(boost::archive::polymorphic_oarchive& _archive, const int _version, const boost::true_type&)
+{
+    if (m_pElement == NULL)
+    {
+        m_pElement = element_type::create();
+        borrowCounter();
+
+        m_pDestroyMethod = new DestroyMethod<element_type>(element_type::destroy, managed_weak_ptr<typename element_type>(this));
+    }
+
+    _archive & *m_pElement;
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+template<typename element_type>
+inline
+void
+managed_payload<element_type>::serialize(boost::archive::polymorphic_oarchive& _archive, const int _version, const boost::false_type&)
+{
+    if (m_pElement == NULL)
+    {
+        m_pElement = element_type::create();
+        borrowCounter();
+    }
+
+    _archive & *m_pElement;
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
