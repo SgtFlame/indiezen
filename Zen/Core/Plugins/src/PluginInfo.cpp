@@ -57,6 +57,7 @@ PluginInfo::PluginInfo(const std::string& _name, const std::string& _description
 ,   m_isLoaded(false)
 ,   m_wantsToLoad(false)
 {
+    Threading::MutexFactory::destroy(m_pGuard);
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~

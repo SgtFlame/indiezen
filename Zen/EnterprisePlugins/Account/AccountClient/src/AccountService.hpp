@@ -102,6 +102,7 @@ public:
 
     typedef Zen::Enterprise::Account::Protocol::I_AuthenticateResponse::pResponse_type pAuthenticateResponse_type;
     void handleAuthenticateResponse(pResponse_type _pResponse, Zen::Enterprise::Account::Protocol::I_AuthenticateRequest& _request, void* _nullPtr);
+    void handleAuthenticateTimeout(Zen::Enterprise::Account::Protocol::I_AuthenticateRequest& _request, void* _nullPtr);
     /// @}
 
     /// @name Static methods

@@ -175,8 +175,11 @@ SessionService::requestLogin(pEndpoint_type _pDestinationEndpoint,
     request->setUserId(_name);
     request->setPassword(_password);
 
-    send<Zen::Enterprise::Session::Protocol::I_LoginRequest, void*>
-        (request, boost::bind(&SessionService::handleLoginResponse, this, _1, _2, _3));
+    send<Zen::Enterprise::Session::Protocol::I_LoginRequest, void*>(
+        request, 
+        boost::bind(&SessionService::handleLoginResponse, this, _1, _2, _3),
+        boost::bind(&SessionService::handleLoginTimeout, this, _1, _2)
+    );
 
     return request->getMessageId();
 }
@@ -246,6 +249,19 @@ SessionService::handleLoginResponse(pResponse_type _pResponse, Zen::Enterprise::
     pSession_type pSession = new Session(pResponse->getSession());
 
     m_sessionIdIndex[pSession->getSessionId()] = pSession;
+
+    // Notify that the session status has changed.
+    boost::any anySession(pSession);
+    getSessionEvent().fireEvent(anySession);
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+void
+SessionService::handleLoginTimeout(Zen::Enterprise::Session::Protocol::I_LoginRequest& _request, void* _nullPtr)
+{
+    // _pSession is the payload associated with the original _request.
+    // Handle this timeout.
+    pSession_type pSession = new Session();
 
     // Notify that the session status has changed.
     boost::any anySession(pSession);

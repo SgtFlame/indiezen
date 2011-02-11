@@ -1,7 +1,8 @@
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 // Zen Enterprise Framework
 //
-// Copyright (C) 2001 - 2010 Tony Richards
+// Copyright (C) 2001 - 2011 Tony Richards
+// Copyright (C) 2008 - 2011 Matthew Alan Gray
 //
 //  This software is provided 'as-is', without any express or implied
 //  warranty.  In no event will the authors be held liable for any damages
@@ -20,6 +21,7 @@
 //  3. This notice may not be removed or altered from any source distribution.
 //
 //  Tony Richards trichards@indiezen.com
+//  Matthew Alan Gray mgray@hatboystudios.com
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 #ifndef ZEN_APPSERVER_SCRIPTABLE_GENERIC_SERVICE_HPP_INCLUDED
 #define ZEN_APPSERVER_SCRIPTABLE_GENERIC_SERVICE_HPP_INCLUDED
@@ -31,6 +33,7 @@
 #include <Zen/Core/Threading/I_Mutex.hpp>
 #include <Zen/Core/Threading/MutexFactory.hpp>
 #include <Zen/Core/Threading/CriticalSection.hpp>
+#include <Zen/Core/Threading/ThreadPool.hpp>
 
 #include <Zen/Core/Scripting.hpp>
 
@@ -45,9 +48,15 @@
 #include <Zen/Enterprise/AppServer/I_RequestHandler.hpp>
 #include <Zen/Enterprise/AppServer/I_Response.hpp>
 #include <Zen/Enterprise/AppServer/I_ResponseHandler.hpp>
+#include <Zen/Enterprise/AppServer/I_TimeoutHandler.hpp>
 #include <Zen/Enterprise/AppServer/I_ProtocolService.hpp>
 
 #include <Zen/Enterprise/Networking/I_Endpoint.hpp>
+
+#include <boost/asio.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/shared_ptr.hpp>
+#include <boost/bind.hpp>
 
 #include <map>
 
@@ -122,7 +131,7 @@ private:
 /// have additional data associated with the request.
 template<typename Request_type, typename Payload_type>
 struct client_response_handler
-:   public I_ResponseHandler
+:   public base_response_handler
 {
     typedef typename Request_type::pRequest_type                pRequest_type;
     typedef boost::function<void(pResponse_type, Request_type&, Payload_type)>  Function_type;
@@ -150,6 +159,61 @@ public:
     pRequest_type               m_pRequest;
     Payload_type                m_payload;
 };  // struct client_response_handler
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+;
+/// base timeout handler.
+/// Used to make the I_TimeoutHandler destructor public.
+class base_timeout_handler
+: public I_TimeoutHandler
+{
+public:
+    virtual ~base_timeout_handler()
+    {
+    }
+
+};  // class base_timeout_handler
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+/// Timeout handler for the client side.
+/// When a client sends a request, it creates this timeout handler and
+/// associates a timeout handler with the request.  If the reply does not
+/// come back from the server within the allotted timeout time, the function
+/// is invoked, passing the original request and payload.  This provides a
+/// mechanism by which the client application can have additional data 
+/// associated with the request timeout.
+template<typename Request_type, typename Payload_type>
+struct client_timeout_handler
+:   public base_timeout_handler
+{
+    typedef typename Request_type::pRequest_type                pRequest_type;
+    typedef boost::function<void(Request_type&, Payload_type)>  Function_type;
+
+    virtual void handleTimeout()
+    {
+        // Use the function to dispatch the handler.
+        if (!m_function.empty())
+        {
+            m_function(*dynamic_cast<Request_type*>(m_pRequest.get()), m_payload);
+        }
+    }
+
+    client_timeout_handler(pRequest_type _pRequest, Payload_type _payload, Function_type _function)
+    :   m_function(_function)
+    ,   m_pRequest(_pRequest)
+    ,   m_payload(_payload)
+    {
+    }
+
+    virtual ~client_timeout_handler()
+    {
+    }
+
+public:
+    Function_type       m_function;
+    pRequest_type       m_pRequest;
+    Payload_type        m_payload;
+};  // struct client_timeout_handler
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 struct request_handler_base
@@ -229,9 +293,9 @@ class create_request
     /// @name Types
     /// @{
 public:
-    typedef Zen::Memory::managed_ptr<Zen::Networking::I_Endpoint>		                pEndpoint_type;
+    typedef Zen::Memory::managed_ptr<Zen::Networking::I_Endpoint>                       pEndpoint_type;
     typedef Zen::Memory::managed_ptr<Zen::Enterprise::AppServer::I_ResourceLocation>    pResourceLocation_type;
-    typedef Zen::Memory::managed_ptr<Enterprise::AppServer::I_Request>	                pInternalRequest_type;
+    typedef Zen::Memory::managed_ptr<Enterprise::AppServer::I_Request>                  pInternalRequest_type;
     /// @}
 
 public:
@@ -262,6 +326,34 @@ public:
     /// @}
 };
 
+struct ClientHandlers
+{
+    /// @name Types
+    /// @{
+public:
+    typedef Memory::managed_ptr<I_ResponseHandler>      pResponseHandler_type;
+    typedef Memory::managed_ptr<I_TimeoutHandler>       pTimeoutHandler_type;
+    /// @}
+
+    /// @name 'Structors
+    /// @{
+public:
+    ClientHandlers(pResponseHandler_type _pResponseHandler, pTimeoutHandler_type _pTimeoutHandler)
+    :   m_pResponseHandler(_pResponseHandler)
+    ,   m_pTimeoutHandler(_pTimeoutHandler)
+    {
+    }
+    /// @}
+
+    /// @name Member Variables
+    /// @{
+public:
+    pResponseHandler_type           m_pResponseHandler;
+    pTimeoutHandler_type            m_pTimeoutHandler;
+    /// @}
+
+};  // struct ClientHandlers
+
 template<typename BaseClass_type, typename Class_type>
 class scriptable_generic_service
 :   public BaseClass_type
@@ -289,7 +381,9 @@ public:
     typedef I_ApplicationServer::pMessage_type                                          pMessage_type;
 
     typedef Memory::managed_ptr<I_ResponseHandler>                                      pResponseHandler_type;
-    typedef std::map<boost::uint64_t, pResponseHandler_type>                            ResponseHandlers_type;
+    typedef Memory::managed_ptr<I_TimeoutHandler>                                       pTimeoutHandler_type;
+
+    typedef std::map<boost::uint64_t, boost::shared_ptr<ClientHandlers> >               ClientHandlersMap_type;
 
     typedef Zen::Memory::managed_ptr<I_MessageType>                                     pMessageType_type;
     typedef Zen::Memory::managed_ptr<I_RequestHandler>                                  pRequestHandler_type;
@@ -326,8 +420,12 @@ public:
     /// @name Implementation
     /// @{
 public:
+    void handleTimeout(boost::uint64_t _requestId);
+
     template<typename Request_type, typename Payload_type>
-    void send(create_request<Request_type, Payload_type>& _request, boost::function<void(pResponse_type, Request_type&, Payload_type)> _function);
+    void send(create_request<Request_type, Payload_type>& _request, 
+              boost::function<void(pResponse_type, Request_type&, Payload_type)> _responseFunction,
+              boost::function<void(Request_type&, Payload_type)> _timeoutFunction);
 
     void registerRequestHandler(pMessageType_type _pMessageType, boost::function<void(pRequest_type, pResponseHandler_type)> _function);
     void unregisterRequestHandler(pMessageType_type _pMessageType);
@@ -350,8 +448,8 @@ private:
 
     pResourceLocation_type                              m_pLocation;
 
-    /// Map from getRequestId() to the response handler.
-    ResponseHandlers_type                                m_responseHandlers;
+    // Map from getRequestId() to the client handlers.
+    ClientHandlersMap_type                              m_clientHandlersMap;
 
     /// Map from pMessageType_type to the request handler.
     RequestHandlers_type                                m_requestHandlers;
@@ -359,7 +457,7 @@ private:
     /// Map from pMessageType_type to the message handler.
     MessageHandlers_type                                m_messageHandlers;
 
-    /// Mutex to guard m_responseHandlers.
+    /// Mutex to guard m_clientHandlersMap.
     Zen::Threading::I_Mutex*                            m_pHandlersMutex;
 
 protected:
@@ -469,13 +567,13 @@ scriptable_generic_service<BaseClass_type, Class_type>::handleMessage(pMessage_t
         // Find the handler
         {
             Zen::Threading::CriticalSection guard(m_pHandlersMutex);
-            ResponseHandlers_type::iterator iter = m_responseHandlers.find(pResponse->getRequestMessageId());
+            ClientHandlersMap_type::iterator iter = m_clientHandlersMap.find(pResponse->getRequestMessageId());
 
-            if(iter != m_responseHandlers.end())
+            if (iter != m_clientHandlersMap.end())
             {
-                pHandler = iter->second;
+                pHandler = iter->second->m_pResponseHandler;
 
-                m_responseHandlers.erase(iter);
+                m_clientHandlersMap.erase(iter);
             }
         }
 
@@ -508,8 +606,6 @@ scriptable_generic_service<BaseClass_type, Class_type>::handleMessage(pMessage_t
         // the destination endpoint is outbound, the app server will send it
         // via the appropriate protocol adapter.
 
-        // If we use detail::client_response_handler here, where do payload and function 
-        // come from?
         RequestHandlers_type::iterator iter = m_requestHandlers.find(pRequest->getMessageType());
 
         if (iter != m_requestHandlers.end())
@@ -544,6 +640,46 @@ scriptable_generic_service<BaseClass_type, Class_type>::handleMessage(pMessage_t
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+template<typename BaseClass_type, typename Class_type>
+inline
+void
+scriptable_generic_service<BaseClass_type, Class_type>::handleTimeout(boost::uint64_t _requestId)
+{
+    pTimeoutHandler_type pHandler;
+
+    // Find the handler
+    {
+        Zen::Threading::CriticalSection guard(m_pHandlersMutex);
+        ClientHandlersMap_type::iterator iter = m_clientHandlersMap.find(_requestId);
+
+        if (iter != m_clientHandlersMap.end())
+        {
+            pHandler = iter->second->m_pTimeoutHandler;
+
+            m_clientHandlersMap.erase(iter);
+        }
+    }
+
+    // If the handler was found, use it.
+    if (pHandler.isValid())
+    {
+        // Dispatch the timeout handler
+        pHandler->handleTimeout();
+    }
+    else
+    {
+        // No timeout handler was specified... just ignore it
+    }
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+inline void destroyTimeoutHandler(Memory::managed_weak_ptr<I_TimeoutHandler> _pHandler)
+{
+    delete dynamic_cast<detail::base_timeout_handler*>(_pHandler.get());
+}
+
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 inline void destroyResponseHandler(Memory::managed_weak_ptr<I_ResponseHandler> _pHandler)
 {
     delete dynamic_cast<detail::base_response_handler*>(_pHandler.get());
@@ -554,24 +690,88 @@ template<typename BaseClass_type, typename Class_type>
 template<typename Request_type, typename Payload_type>
 inline
 void
-scriptable_generic_service<BaseClass_type, Class_type>::send(create_request<Request_type, Payload_type>& _request, boost::function<void(pResponse_type, Request_type&, Payload_type)> _function)
+scriptable_generic_service<BaseClass_type, Class_type>::send(create_request<Request_type, Payload_type>& _request, 
+                                                             boost::function<void(pResponse_type, Request_type&, Payload_type)> _responseFunction,
+                                                             boost::function<void(Request_type&, Payload_type)> _timeoutFunction)
 {
+    class AsyncTimeoutTask
+    :   public Threading::ThreadPool::Task
+    {
+    public:
+        virtual void call()
+        {
+            boost::asio::io_service io;
+            boost::asio::deadline_timer t(io, boost::posix_time::milliseconds(m_milliseconds));
+            t.async_wait(boost::bind(&AsyncTimeoutTask::callHandler, this, _1));
+            io.run();
+        }
+
+        void callHandler(const boost::system::error_code&)
+        {
+            m_service.handleTimeout(m_requestId);
+        }
+
+        AsyncTimeoutTask(int _milliseconds, boost::uint64_t _requestId, scriptable_generic_service<BaseClass_type, Class_type>& _service)
+        :   m_milliseconds(_milliseconds)
+        ,   m_requestId(_requestId)
+        ,   m_service(_service)
+        {
+        }
+
+    private:
+        int                                                     m_milliseconds;
+        boost::uint64_t                                         m_requestId;
+        scriptable_generic_service<BaseClass_type, Class_type>& m_service;;
+    };  // class AsyncTimeoutTask
+
     // Send an outbound request.
-    detail::client_response_handler<Request_type, Payload_type>* pRawHandler = 
+    detail::client_response_handler<Request_type, Payload_type>* pRawResponseHandler = 
         new detail::client_response_handler<Request_type, Payload_type>(
             _request.m_pRequest, 
             _request.m_payload, 
-            _function
+            _responseFunction
         );
 
-    Memory::managed_ptr<I_ResponseHandler> pHandler(pRawHandler, destroyResponseHandler);
+    Memory::managed_ptr<I_ResponseHandler> pResponseHandler(
+        pRawResponseHandler, 
+        destroyResponseHandler
+    );
+
+    detail::client_timeout_handler<Request_type, Payload_type>* pRawTimeoutHandler =
+        new detail::client_timeout_handler<Request_type, Payload_type>(
+            _request.m_pRequest,
+            _request.m_payload,
+            _timeoutFunction
+        );
+
+    Memory::managed_ptr<I_TimeoutHandler> pTimeoutHandler(
+        pRawTimeoutHandler,
+        destroyTimeoutHandler
+    );
 
     {
         Zen::Threading::CriticalSection guard(m_pHandlersMutex);
-        m_responseHandlers[_request.m_pRawRequest->getMessageId()] = pHandler;
+
+        m_clientHandlersMap[_request.m_pRawRequest->getMessageId()] = 
+            boost::shared_ptr<ClientHandlers>(
+                new ClientHandlers(
+                    pResponseHandler,
+                    pTimeoutHandler
+                )
+            );
     }
 
-    getApplicationServer().handleRequest(_request.m_pRequest, pHandler);
+    getApplicationServer().handleRequest(_request.m_pRequest, pResponseHandler);
+
+    AsyncTimeoutTask* pTask = new AsyncTimeoutTask(
+        2000,
+        _request.m_pRawRequest->getMessageId(),
+        *this
+    );
+
+    m_pThreadPool->pushRequest(pTask);
+    /// TODO Set off an async timeout timer.
+
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
@@ -586,23 +786,6 @@ scriptable_generic_service<BaseClass_type, Class_type>::handleRequest(pRequest_t
     {
         iter->second->handleRequest(_pRequest, _pResponseHandler);
     }
-
-    // This code was here for cases where the App Server sent outgoing requests 
-    // back through the service.  App Server should not send it back through
-    // the service if the destionation endpoint is outbound.
-#if 0 // deprecated
-
-    ResponseHandlers_type::iterator iter = m_responseHandlers.find(_pRequest->getMessageId());
-    if(iter == m_responseHandlers.end())
-    {
-        m_responseHandlers[_pRequest->getMessageId()] = _pResponseHandler;
-    }
-
-    _pRequest->getDestinationEndpoint()->getProtocolAdapter().lock()->sendTo(
-        _pRequest,
-        _pRequest->getDestinationEndpoint()
-    );
-#endif // deprecated
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
