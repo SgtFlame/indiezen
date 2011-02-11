@@ -169,7 +169,7 @@ Log::logMessage(const std::string& _message,
 log_stream_buffer
 Log::getStreamBuffer(LogMessageLevel _logMessageLevel, bool _maskDebug)
 {
-	return log_stream_buffer(getSelfReference().lock(), _logMessageLevel, _maskDebug);
+    return log_stream_buffer(getSelfReference().lock(), _logMessageLevel, _maskDebug);
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~

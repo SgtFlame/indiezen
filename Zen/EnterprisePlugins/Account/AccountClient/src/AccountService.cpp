@@ -162,8 +162,11 @@ AccountService::authenticate(pEndpoint_type _pDestinationEndpoint,
     request->setUserId(_name);
     request->setPassword(_password);
 
-    send<Zen::Enterprise::Account::Protocol::I_AuthenticateRequest, void*>
-        (request, boost::bind(&AccountService::handleAuthenticateResponse, this, _1, _2, _3));
+    send<Zen::Enterprise::Account::Protocol::I_AuthenticateRequest, void*>(
+        request, 
+        boost::bind(&AccountService::handleAuthenticateResponse, this, _1, _2, _3),
+        boost::bind(&AccountService::handleAuthenticateTimeout, this, _1, _2)
+    );
 
     return request->getMessageId();
 }
@@ -229,6 +232,29 @@ AccountService::handleAuthenticateResponse(pResponse_type _pResponse, Zen::Enter
     Enterprise::Account::I_AccountService::AuthenticationPayload payload(
         pResponse->getRequestMessageId(),
         pResponse->getAuthenticated(),
+        pAccount
+    );
+
+    // Notify that the account status has changed.
+    boost::any authPayload(payload);
+    getAuthenticationEvent().fireEvent(authPayload);
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+void
+AccountService::handleAuthenticateTimeout(Zen::Enterprise::Account::Protocol::I_AuthenticateRequest& _request, void* _nullPtr)
+{
+    // _pAccount is the payload associated with the original _request.
+    // Handle this timeout.
+
+    pAccount_type pAccount(
+        new Account(),
+        destroyAccount
+    );
+
+    Enterprise::Account::I_AccountService::AuthenticationPayload payload(
+        _request.getMessageId(),
+        false,
         pAccount
     );
 

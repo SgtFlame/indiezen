@@ -109,6 +109,7 @@ public:
 
     typedef Zen::Enterprise::Session::Protocol::I_LoginResponse::pResponse_type pLoginResponse_type;
     void handleLoginResponse(pResponse_type _pResponse, Zen::Enterprise::Session::Protocol::I_LoginRequest& _request, void* _nullPtr);
+    void handleLoginTimeout(Zen::Enterprise::Session::Protocol::I_LoginRequest& _request, void* _nullPtr);
 
     typedef Zen::Enterprise::Session::Protocol::I_LogoutResponse::pResponse_type pLogoutResponse_type;
     void handleLogoutResponse(pResponse_type _pResponse, Zen::Enterprise::Session::Protocol::I_LogoutRequest& _request, pSession_type _pSession);
