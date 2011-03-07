@@ -39,11 +39,6 @@ set_target_properties (AccountClient
     DEBUG_POSTFIX "_d"
 )
 
-if (MSVC_IDE)
-    set_target_properties (AccountClient PROPERTIES PREFIX "../../bin/")
-    set_target_properties (AccountClient PROPERTIES IMPORT_PREFIX "../../lib/")
-endif (MSVC_IDE)
-
 <%HeaderInstallDirectives%>
 
 install ( TARGETS

@@ -220,6 +220,7 @@ struct request_handler_base
 :   public I_RequestHandler
 {
     virtual ~request_handler_base()
+
     {
     }
 };  // struct request_handler_base
@@ -687,6 +688,39 @@ inline void destroyResponseHandler(Memory::managed_weak_ptr<I_ResponseHandler> _
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 template<typename BaseClass_type, typename Class_type>
+class AsyncTimeoutTask
+:   public Threading::ThreadPool::Task
+{
+public:
+virtual void call()
+{
+    boost::asio::io_service io;
+    boost::asio::deadline_timer t(io, boost::posix_time::milliseconds(m_milliseconds));
+    t.async_wait(boost::bind(&AsyncTimeoutTask::callHandler, this, boost::asio::placeholders::error));
+    io.run();
+}
+
+void callHandler(const boost::system::error_code&)
+{
+    m_service.handleTimeout(m_requestId);
+}
+
+AsyncTimeoutTask(int _milliseconds, boost::uint64_t _requestId, scriptable_generic_service<BaseClass_type, Class_type>& _service)
+:   m_milliseconds(_milliseconds)
+,   m_requestId(_requestId)
+,   m_service(_service)
+{
+}
+
+private:
+int                                                     m_milliseconds;
+boost::uint64_t                                         m_requestId;
+scriptable_generic_service<BaseClass_type, Class_type>& m_service;
+
+};  // class AsyncTimeoutTask
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+template<typename BaseClass_type, typename Class_type>
 template<typename Request_type, typename Payload_type>
 inline
 void
@@ -694,36 +728,6 @@ scriptable_generic_service<BaseClass_type, Class_type>::send(create_request<Requ
                                                              boost::function<void(pResponse_type, Request_type&, Payload_type)> _responseFunction,
                                                              boost::function<void(Request_type&, Payload_type)> _timeoutFunction)
 {
-    class AsyncTimeoutTask
-    :   public Threading::ThreadPool::Task
-    {
-    public:
-        virtual void call()
-        {
-            boost::asio::io_service io;
-            boost::asio::deadline_timer t(io, boost::posix_time::milliseconds(m_milliseconds));
-            t.async_wait(boost::bind(&AsyncTimeoutTask::callHandler, this, _1));
-            io.run();
-        }
-
-        void callHandler(const boost::system::error_code&)
-        {
-            m_service.handleTimeout(m_requestId);
-        }
-
-        AsyncTimeoutTask(int _milliseconds, boost::uint64_t _requestId, scriptable_generic_service<BaseClass_type, Class_type>& _service)
-        :   m_milliseconds(_milliseconds)
-        ,   m_requestId(_requestId)
-        ,   m_service(_service)
-        {
-        }
-
-    private:
-        int                                                     m_milliseconds;
-        boost::uint64_t                                         m_requestId;
-        scriptable_generic_service<BaseClass_type, Class_type>& m_service;;
-    };  // class AsyncTimeoutTask
-
     // Send an outbound request.
     detail::client_response_handler<Request_type, Payload_type>* pRawResponseHandler = 
         new detail::client_response_handler<Request_type, Payload_type>(
@@ -763,15 +767,13 @@ scriptable_generic_service<BaseClass_type, Class_type>::send(create_request<Requ
 
     getApplicationServer().handleRequest(_request.m_pRequest, pResponseHandler);
 
-    AsyncTimeoutTask* pTask = new AsyncTimeoutTask(
+    AsyncTimeoutTask<BaseClass_type, Class_type>* pTask = new AsyncTimeoutTask<BaseClass_type, Class_type>(
         2000,
         _request.m_pRawRequest->getMessageId(),
         *this
     );
 
     m_pThreadPool->pushRequest(pTask);
-    /// TODO Set off an async timeout timer.
-
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~

@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.6) 
+cmake_minimum_required (VERSION 2.8) 
 
 project (IndieZen)
 
@@ -34,8 +34,14 @@ execute_process(COMMAND lua ${ZPKG_SCRIPT} build generate ${INDIEZEN_PARENT}
 )
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${DEV_BIN}")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${DEV_BIN}")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${DEV_BIN}")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${DEV_LIB}")
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${DEV_LIB}")
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${DEV_LIB}")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${DEV_BIN}")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG "${DEV_BIN}")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE "${DEV_BIN}")
 
 # Do the major Zen projects
 #set ( ZEN_PROJECTS "Core;Engine;Enterprise;Studio/Workbench;Studio/WorkbenchCommon;Studio/WorkbenchModel;Studio/WorkbenchProtocol;Studio/WorkbenchServer;Studio/ZenStudio" )
@@ -223,5 +229,11 @@ option(ZEN_BUILD_UNIT_TESTS "Build Unit Tests" FALSE)
 if (ZEN_BUILD_UNIT_TESTS)
     add_subdirectory("${ZEN_HOME}/Test" "Test")
 endif()
+
+install ( FILES 
+    ${ZEN_HOME}/Setup/Package/license.txt
+    DESTINATION
+    include/Zen/Setup/Package/
+)
 
 include(Packaging)

@@ -84,6 +84,14 @@ Connection::connect(pEndpoint_type _pEndpoint)
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 void
+Connection::disconnect()
+{
+    m_socket.close();
+    m_protocolService.onDisconnected(shared_from_this());
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+void
 Connection::handleConnect(const boost::system::error_code& _errorCode)
 {
     if (!_errorCode)

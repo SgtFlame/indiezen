@@ -40,9 +40,3 @@ set_target_properties ( ZODE
 						DEBUG_POSTFIX "_d"
 					)
 
-if (MSVC_IDE)
-    # hack to get around the "Debug" and "Release" directories cmake tries to add on Windows
-    set_target_properties ( ZODE PROPERTIES PREFIX "../../bin/" )
-	set_target_properties ( ZODE PROPERTIES IMPORT_PREFIX "../../lib/" )
-endif(MSVC_IDE)
-

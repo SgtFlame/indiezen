@@ -283,6 +283,13 @@ UserDatagramProtocolService::sendTo(pMessage_type _pMessage,
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+void
+UserDatagramProtocolService::disconnect(pEndpoint_type _pEndpoint)
+{
+    /// TODO Ignore?
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 Event::I_Event&
 UserDatagramProtocolService::getConnectedEvent()
 {

@@ -323,7 +323,7 @@ function findHeaders(pathName, subdir)
     end
     
 	if headerList ~= "" then
-		installDirectives = installDirectives .. "\ninstall ( FILES \n" .. headerList .. "    DESTINATION\n    Zen/${PROJECT_PREFIX}/" .. subdir .. "\n)\n"
+		installDirectives = installDirectives .. "\ninstall ( FILES \n" .. headerList .. "    DESTINATION\n    include/Zen/${PROJECT_PREFIX}/" .. subdir .. "\n)\n"
 	end
 	
     return installDirectives

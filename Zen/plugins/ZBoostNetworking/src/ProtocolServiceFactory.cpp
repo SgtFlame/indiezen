@@ -40,13 +40,13 @@ namespace AppServer {
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 ProtocolServiceFactory::ProtocolServiceFactory()
 {
-    m_factoryFunctions.insert(std::make_pair<std::string, FactoryFunction_type>
+    m_factoryFunctions.insert(std::pair<std::string, FactoryFunction_type>
             ("http", createHttp));
-    m_factoryFunctions.insert(std::make_pair<std::string, FactoryFunction_type>
+    m_factoryFunctions.insert(std::pair<std::string, FactoryFunction_type>
             ("udp", createUdp));
-    m_factoryFunctions.insert(std::make_pair<std::string, FactoryFunction_type>
+    m_factoryFunctions.insert(std::pair<std::string, FactoryFunction_type>
             ("xml", createXML));
-    m_factoryFunctions.insert(std::make_pair<std::string, FactoryFunction_type>
+    m_factoryFunctions.insert(std::pair<std::string, FactoryFunction_type>
             ("tcp-binary", createTCP));
 
 }

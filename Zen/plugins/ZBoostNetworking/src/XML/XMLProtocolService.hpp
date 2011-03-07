@@ -86,6 +86,7 @@ public:
     virtual I_ApplicationServer& getApplicationServer();
     virtual pEndpoint_type resolveEndpoint(const std::string& _address, const std::string& _port);
     virtual void sendTo(pMessage_type _pMessage, pEndpoint_type _pEndpoint);
+    virtual void disconnect(pEndpoint_type _pEndpoint);
     virtual Event::I_Event& getConnectedEvent();
     virtual Event::I_Event& getDisconnectedEvent();
     virtual void setMessageRegistry(pMessageRegistry_type _pMessageRegistry);

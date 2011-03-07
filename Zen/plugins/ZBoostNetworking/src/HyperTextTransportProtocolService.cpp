@@ -153,6 +153,13 @@ HyperTextTransportProtocolService::sendTo(pMessage_type _pMessage, pEndpoint_typ
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+void
+HyperTextTransportProtocolService::disconnect(pEndpoint_type _pEndpoint)
+{
+    throw Utility::runtime_exception("HyperTextTransportProtocolService::disconnect(): Error, not implemented.");
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 Event::I_Event&
 HyperTextTransportProtocolService::getConnectedEvent()
 {

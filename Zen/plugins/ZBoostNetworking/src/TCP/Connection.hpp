@@ -70,6 +70,9 @@ public:
     /// This establishes a TCP connection to a server.
     void connect(pEndpoint_type _pEndpoint);
 
+    /// Disconnect.
+    void disconnect();
+
     /// The connection is "connected" so start processing it 
     /// but please make it asynchronous :P
     void start(pEndpoint_type _pEndpoint);
