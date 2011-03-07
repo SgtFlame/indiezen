@@ -43,13 +43,15 @@ set_target_properties ( ZBoostNetworking
 						DEBUG_POSTFIX "_d"
 					)
 
-if (MSVC_IDE)
-    # hack to get around the "Debug" and "Release" directories cmake tries to add on Windows
-    set_target_properties ( ZBoostNetworking PROPERTIES PREFIX "../../bin/" )
-	set_target_properties ( ZBoostNetworking PROPERTIES IMPORT_PREFIX "../../lib/" )
-endif(MSVC_IDE)
-
 <%HeaderInstallDirectives%>
+
+if (NOT MSVC)
+install ( FILES 
+    plugin.xml
+    DESTINATION
+    /etc/Zen/${PROJECT_PREFIX}/
+)
+endif (NOT MSVC)
 
 install ( TARGETS
 	ZBoostNetworking

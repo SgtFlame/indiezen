@@ -32,6 +32,7 @@ namespace Zen {
 namespace Utility { 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 EnvironmentHandler::EnvironmentHandler()
+:   m_environment()
 {
 }
 
@@ -44,10 +45,10 @@ EnvironmentHandler::~EnvironmentHandler()
 void
 EnvironmentHandler::appendEnvironment(const Environment_type& _environment)
 {
-	for(Environment_type::const_iterator iter = _environment.begin(); iter != _environment.end(); iter++)
-	{
-		m_environment[iter->first] = iter->second;
-	}
+    for(Environment_type::const_iterator iter = _environment.begin(); iter != _environment.end(); iter++)
+    {
+        m_environment[iter->first] = iter->second;
+    }
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
@@ -60,14 +61,14 @@ EnvironmentHandler::setCommandLine(int argc, const char *argv[])
 const std::string&
 EnvironmentHandler::getEnvironment(const std::string &_name) const
 {
-	Environment_type::const_iterator iter = m_environment.find(_name);
+    Environment_type::const_iterator iter = m_environment.find(_name);
 
-	if(iter == m_environment.end())
-	{
-		return m_empty;
-	}
+    if(iter == m_environment.end())
+    {
+        return m_empty;
+    }
 
-	return iter->second;
+    return iter->second;
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~

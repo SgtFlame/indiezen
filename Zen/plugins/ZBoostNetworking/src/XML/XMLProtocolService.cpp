@@ -156,6 +156,14 @@ XMLProtocolService::sendTo(pMessage_type _pMessage, pEndpoint_type _pEndpoint)
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+void
+XMLProtocolService::disconnect(pEndpoint_type _pEndpoint)
+{
+    // TODO Implement
+    throw Utility::runtime_exception("XMLProtocolService::disconnect(): Error, not implemented.");
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 Event::I_Event&
 XMLProtocolService::getConnectedEvent()
 {

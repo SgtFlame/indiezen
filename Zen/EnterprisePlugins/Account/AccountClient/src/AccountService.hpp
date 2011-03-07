@@ -59,28 +59,28 @@ public:
     typedef Zen::Memory::managed_weak_ptr<I_Account>	wpAccount_type;
     /// @}
 
-	/// @name I_StartupShutdownParticipant implementation
-	/// @{
+    /// @name I_StartupShutdownParticipant implementation
+    /// @{
 public:
     virtual void setConfiguration(const Zen::Plugins::I_ConfigurationElement& _config);
     virtual Zen::Threading::I_Condition* prepareToStart(Zen::Threading::ThreadPool& _threadPool);
     virtual void start();
     virtual Zen::Threading::I_Condition* prepareToStop();
     virtual void stop();
-	/// @}
+    /// @}
 
-	/// @name I_ScriptableType implementation
-	/// @{
+    /// @name I_ScriptableType implementation
+    /// @{
 public:
     virtual const std::string& getScriptTypeName();
     virtual Scripting::I_ObjectReference* getScriptObject();
-	/// @}
+    /// @}
 
-	/// @name I_ScriptableService implementation
-	/// @{
+    /// @name I_ScriptableService implementation
+    /// @{
 public:
     virtual void registerScriptEngine(pScriptEngine_type _pScriptEngine);
-	/// @}
+    /// @}
 
     /// @name I_AccountService implementation
     /// @{

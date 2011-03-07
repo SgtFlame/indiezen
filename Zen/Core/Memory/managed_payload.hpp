@@ -508,7 +508,7 @@ managed_payload<element_type>::serialize(boost::archive::polymorphic_iarchive& _
         m_pElement == element_type::create();
         borrowCounter();
 
-        m_pDestroyMethod = new DestroyMethod<element_type>(element_type::destroy, managed_weak_ptr<typename element_type>(this));
+        m_pDestroyMethod = new DestroyMethod<element_type>(element_type::destroy, managed_weak_ptr<typename managed_payload::Element_type>(this));
     }
 
     _archive & *m_pElement;
@@ -540,7 +540,7 @@ managed_payload<element_type>::serialize(boost::archive::polymorphic_oarchive& _
         m_pElement = element_type::create();
         borrowCounter();
 
-        m_pDestroyMethod = new DestroyMethod<element_type>(element_type::destroy, managed_weak_ptr<typename element_type>(this));
+        m_pDestroyMethod = new DestroyMethod<element_type>(element_type::destroy, managed_weak_ptr<typename managed_payload::Element_type>(this));
     }
 
     _archive & *m_pElement;

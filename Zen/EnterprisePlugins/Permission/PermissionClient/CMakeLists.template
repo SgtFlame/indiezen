@@ -39,11 +39,6 @@ set_target_properties (PermissionClient
     DEBUG_POSTFIX "_d"
 )
 
-if (MSVC_IDE)
-    set_target_properties (PermissionClient PROPERTIES PREFIX "../../bin/")
-    set_target_properties (PermissionClient PROPERTIES IMPORT_PREFIX "../../lib/")
-endif (MSVC_IDE)
-
 <%HeaderInstallDirectives%>
 
 install ( TARGETS

@@ -47,10 +47,6 @@ set_target_properties ( ZenCore
 
 if (MSVC_IDE)
     add_definitions( -DTHREADMODEL_WIN32 )
-
-    # hack to get around the "Debug" and "Release" directories cmake tries to add on Windows
-    set_target_properties ( ZenCore PROPERTIES PREFIX "../../bin/" )
-	set_target_properties ( ZenCore PROPERTIES IMPORT_PREFIX "../../lib/" )
 endif(MSVC_IDE)
 
 <%HeaderInstallDirectives%>

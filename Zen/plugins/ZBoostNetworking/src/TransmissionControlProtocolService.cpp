@@ -196,6 +196,25 @@ TransmissionControlProtocolService::sendTo(pMessage_type _pMessage, pEndpoint_ty
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+void
+TransmissionControlProtocolService::disconnect(pEndpoint_type _pEndpoint)
+{
+    typedef Memory::managed_ptr<Endpoint> pConcreteEndpoint_type;
+    pConcreteEndpoint_type pEndpoint(_pEndpoint.as<pConcreteEndpoint_type>());
+
+    if (pEndpoint.isValid())
+    {
+        Threading::CriticalSection guard(m_pConnectionsGuard);
+
+        ConnectionMap_type::iterator iter = m_connectionMap.find(pEndpoint->getEndpoint());
+        if (iter != m_connectionMap.end())
+        {
+            iter->second->disconnect();
+        }
+    }
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 Event::I_Event&
 TransmissionControlProtocolService::getConnectedEvent()
 {

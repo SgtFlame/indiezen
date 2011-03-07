@@ -39,11 +39,6 @@ set_target_properties (SessionService
     DEBUG_POSTFIX "_d"
 )
 
-if (MSVC_IDE)
-    set_target_properties (SessionService PROPERTIES PREFIX "../../bin/")
-    set_target_properties (SessionService PROPERTIES IMPORT_PREFIX "../../lib/")
-endif (MSVC_IDE)
-
 <%HeaderInstallDirectives%>
 
 install ( TARGETS
