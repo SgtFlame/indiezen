@@ -29,6 +29,7 @@
 #include "libpq-fe.h"
 
 #include <boost/any.hpp>
+#include <boost/shared_ptr.hpp>
 
 #include <string>
 #include <map>
@@ -46,6 +47,18 @@ class DatabaseTypes
     /// @name Types
     /// @{
 public:
+    enum dbTypes_enum
+    {
+        INT8OID = 20,
+        INT2OID = 21,
+        INT4OID = 23,
+        FLOAT4OID = 700,
+        FLOAT8OID = 701,
+        TIMESTAMPOID = 1114,
+        VARCHAROID = 1043
+    };
+
+    typedef std::map<Oid, boost::shared_ptr<DataConverter> >           ConversionMap_type;
     /// @}
 
     /// @name DatabaseTypes implementation
@@ -65,8 +78,7 @@ public:
     /// @name Member Variables
     /// @{
 private:
-    typedef std::map<int, DataConverter*>           ConversionMap_type;
-    ConversionMap_type                              m_dataConversionMap;
+    static const ConversionMap_type                     sm_dataConversionMap;
     /// @}
 
 };  // class DatabaseTypes

@@ -61,6 +61,7 @@ namespace XML {
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 XMLProtocolService::XMLProtocolService(I_ApplicationServer& _server)
 :   m_appServer(_server)
+,   m_pConfig(NULL)
 ,   m_ioService()
 ,   m_acceptor(m_ioService)
 ,   m_pRequestHandler(NULL)
@@ -94,6 +95,8 @@ XMLProtocolService::getApplicationServer()
 void
 XMLProtocolService::setConfiguration(const Plugins::I_ConfigurationElement& _config)
 {
+    m_pConfig = &_config;
+
     m_address = _config.getAttribute("address");
     m_port = _config.getAttribute("port");
     m_threadCount = strtol(_config.getAttribute("threads").c_str(), NULL, 10);
@@ -133,6 +136,13 @@ XMLProtocolService::setConfiguration(const Plugins::I_ConfigurationElement& _con
     ConfigVisitor visitor(*this);
     _config.getChildren("map", visitor);
 
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+const Plugins::I_ConfigurationElement*
+XMLProtocolService::getConfiguration() const
+{
+    return m_pConfig;
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~

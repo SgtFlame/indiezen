@@ -135,19 +135,19 @@ DatabaseConnection::escapeString(const std::string& _string)
     std::string replaceString("\'\'");
 
     std::string::size_type pos = 0;
-    while ((pos = _string.find(searchString, pos)) != std::string::npos) 
+    while ((pos = str.find(searchString, pos)) != std::string::npos) 
     {
         str.replace(pos, searchString.size(), replaceString);
-        pos++;
+        pos += replaceString.size();
     }
 
     searchString = "\"\"";
     pos = 0;
 
-    while ((pos = _string.find(searchString, pos)) != std::string::npos) 
+    while ((pos = str.find(searchString, pos)) != std::string::npos) 
     {
         str.replace(pos, searchString.size(), replaceString);
-        pos++;
+        pos += replaceString.size();
     }
 
     return str;

@@ -29,10 +29,32 @@
 
 #include <Zen/Core/Utility/runtime_exception.hpp>
 
+#include <boost/assign/list_of.hpp>
+#include <boost/cstdint.hpp>
+
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 namespace Zen {
 namespace Enterprise {
 namespace DataModel {
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+typedef std::map<
+    size_t,
+    DataElement::UnderlyingType
+>   TypeMap_type;
+
+static const TypeMap_type sm_typeMap = boost::assign::map_list_of
+    (typeid(boost::uint8_t).hash_code(), DataElement::INTEGER)
+    (typeid(boost::uint16_t).hash_code(), DataElement::INTEGER)
+    (typeid(boost::uint32_t).hash_code(), DataElement::INTEGER)
+    (typeid(boost::uint64_t).hash_code(), DataElement::INTEGER)
+    (typeid(boost::int8_t).hash_code(), DataElement::INTEGER)
+    (typeid(boost::int16_t).hash_code(), DataElement::INTEGER)
+    (typeid(boost::int32_t).hash_code(), DataElement::INTEGER)
+    (typeid(boost::int64_t).hash_code(), DataElement::INTEGER)
+    (typeid(float).hash_code(), DataElement::REAL)
+    (typeid(double).hash_code(), DataElement::REAL)
+    (typeid(boost::posix_time::ptime).hash_code(), DataElement::DATETIME)
+    (typeid(std::string).hash_code(), DataElement::STRING);
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 DataElement::DataElement()
 :   m_type(NULL_TYPE)
@@ -84,7 +106,23 @@ DataElement::getAnyValue() const
 void
 DataElement::setAnyValue(const boost::any& _value)
 {
-    m_type = UNKNOWN;
+    if (!_value.empty())
+    {
+        TypeMap_type::const_iterator iter = sm_typeMap.find(_value.type().hash_code());
+        if (iter != sm_typeMap.end())
+        {
+            m_type = iter->second;
+        }
+        else
+        {
+            m_type = UNKNOWN;
+        }
+    }
+    else
+    {
+        m_type = NULL_TYPE;
+    }
+
     m_value = _value;
     setDirty(true);
 }
@@ -94,7 +132,6 @@ I_DataElement&
 DataElement::operator=(const boost::any& _value)
 {
     setAnyValue(_value);
-    m_type = UNKNOWN;
     setDirty(true);
     return *this;
 }
@@ -297,19 +334,19 @@ DataElement::escapeString(const std::string& _string)
     std::string replaceString("\'\'");
 
     std::string::size_type pos = 0;
-    while ((pos = _string.find(searchString, pos)) != std::string::npos) 
+    while ((pos = str.find(searchString, pos)) != std::string::npos) 
     {
         str.replace(pos, searchString.size(), replaceString);
-        pos++;
+        pos += replaceString.size();
     }
 
     searchString = "\"\"";
     pos = 0;
 
-    while ((pos = _string.find(searchString, pos)) != std::string::npos) 
+    while ((pos = str.find(searchString, pos)) != std::string::npos) 
     {
         str.replace(pos, searchString.size(), replaceString);
-        pos++;
+        pos += replaceString.size();
     }
 
     return str;

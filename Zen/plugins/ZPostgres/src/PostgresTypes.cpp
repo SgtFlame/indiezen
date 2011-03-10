@@ -30,7 +30,12 @@
 
 Zen::ZPostgres::DatabaseTypes gDatabaseTypes;
 
+#include <boost/assign/list_of.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/cstdint.hpp>
+
 #include <string>
+#include <map>
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 namespace Zen {
@@ -40,7 +45,68 @@ class DataConverter
 {
 public:
     virtual const std::type_info& getTypeInfo() = 0;
+    virtual boost::any getAnyValue(const std::string& _value) = 0;
 };  // class DataConverter
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+class IntegerDataConverter
+:   public DataConverter
+{
+public:
+    virtual const std::type_info& getTypeInfo()
+    {
+        return typeid(boost::int64_t);
+    }
+
+    virtual boost::any getAnyValue(const std::string& _value)
+    {
+        return boost::any(boost::lexical_cast<boost::int64_t, std::string>(_value));
+    }
+
+};  // class IntegerData
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+class RealDataConverter
+:   public DataConverter
+{
+public:
+    virtual const std::type_info& getTypeInfo()
+    {
+        return typeid(double);
+    }
+
+    virtual boost::any getAnyValue(const std::string& _value)
+    {
+        return boost::any(boost::lexical_cast<double, std::string>(_value));
+    }
+
+};  // class RealDataConverter
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+class StringDataConverter
+:   public DataConverter
+{
+public:
+    virtual const std::type_info& getTypeInfo()
+    {
+        return typeid(std::string);
+    }
+
+    virtual boost::any getAnyValue(const std::string& _value)
+    {
+        return boost::any(_value);
+    }
+
+};  // class StringDataConverter
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+const DatabaseTypes::ConversionMap_type DatabaseTypes::sm_dataConversionMap = boost::assign::map_list_of
+    (DatabaseTypes::INT8OID, boost::shared_ptr<DataConverter>(new IntegerDataConverter))
+    (DatabaseTypes::INT2OID, boost::shared_ptr<DataConverter>(new IntegerDataConverter))
+    (DatabaseTypes::INT4OID, boost::shared_ptr<DataConverter>(new IntegerDataConverter))
+    (DatabaseTypes::FLOAT4OID, boost::shared_ptr<DataConverter>(new RealDataConverter))
+    (DatabaseTypes::FLOAT8OID, boost::shared_ptr<DataConverter>(new RealDataConverter))
+    (DatabaseTypes::VARCHAROID, boost::shared_ptr<DataConverter>(new StringDataConverter));
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 DatabaseTypes::DatabaseTypes()
@@ -57,9 +123,9 @@ const std::type_info&
 DatabaseTypes::getTypeInfo(int _fieldType) const
 {
     ConversionMap_type::const_iterator iter =
-        m_dataConversionMap.find(_fieldType);
+        sm_dataConversionMap.find(_fieldType);
 
-    if (iter == m_dataConversionMap.end())
+    if (iter == sm_dataConversionMap.end())
     {
         // Default to a string
         return typeid(std::string);
@@ -74,22 +140,19 @@ DatabaseTypes::getTypeInfo(int _fieldType) const
 boost::any
 DatabaseTypes::getData(PGresult* _pResult, const DatabaseColumn& _column, int _rowNumber, int _fieldNumber) const
 {
+    std::string stringValue((const char*)PQgetvalue(_pResult, _rowNumber, _fieldNumber));
+
     ConversionMap_type::const_iterator iter =
-        m_dataConversionMap.find(_column.getPGType());
+        sm_dataConversionMap.find(PQftype(_pResult, _fieldNumber));
 
-    if (iter == m_dataConversionMap.end())
+    if (iter != sm_dataConversionMap.end())
     {
-        // Default to a string
-        std::string stringValue = stringValue;
-        stringValue = (const char*)PQgetvalue(_pResult, _rowNumber, _fieldNumber);
-
-        boost::any value(stringValue);
-        return value;
+        return iter->second->getAnyValue(stringValue);
     }
     else
     {
-        // TODO implement.
-        throw Utility::runtime_exception("DatabaseTypes::getData() : Error, not implemented");
+        boost::any value(stringValue);
+        return value;
     }
 }
 

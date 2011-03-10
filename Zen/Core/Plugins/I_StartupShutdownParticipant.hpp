@@ -60,6 +60,9 @@ public:
     /// set first, then the startup procedure is invoked.
     virtual void setConfiguration(const Plugins::I_ConfigurationElement& _config) = 0;
 
+    /// Get the configuration of the startup/shutdown participant
+    virtual const Plugins::I_ConfigurationElement* getConfiguration() const = 0;
+
     /// Prepare the service for starting.  If the service cannot start
     /// immediately, the service should return a condition variable that 
     /// will be asserted once the service is prepared to start.  If startup

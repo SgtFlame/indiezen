@@ -68,6 +68,7 @@ namespace UDP {
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 UserDatagramProtocolService::UserDatagramProtocolService(Zen::Enterprise::AppServer::I_ApplicationServer& _appServer)
 :   m_appServer(_appServer)
+,   m_pConfig(NULL)
 ,   m_ioService()
 ,   m_pWork(NULL)
 ,   m_address()
@@ -88,11 +89,20 @@ UserDatagramProtocolService::~UserDatagramProtocolService()
 void
 UserDatagramProtocolService::setConfiguration(const Zen::Plugins::I_ConfigurationElement& _config)
 {
+    m_pConfig = &_config;
+
     m_address = _config.getAttribute("address");
     m_port = _config.getAttribute("port");
 
     // TODO Need to support thread count as an optional parameter
     //m_threadCount = boost::lexical_cast<long,std::string>(_config.getAttribute("threads"));
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+const Plugins::I_ConfigurationElement*
+UserDatagramProtocolService::getConfiguration() const
+{
+    return m_pConfig;
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
