@@ -84,6 +84,7 @@ public:
     /// @{
 public:
     virtual void setConfiguration(const Plugins::I_ConfigurationElement& _config);
+    virtual const Plugins::I_ConfigurationElement* getConfiguration() const;
     virtual Threading::I_Condition* prepareToStart(Threading::ThreadPool& _threadPool);
     virtual void start();
     virtual Threading::I_Condition* prepareToStop();
@@ -135,6 +136,9 @@ public:
 private:
     /// Reference to the parent application server to which this protocol service is bound
     AppServer::I_ApplicationServer&    m_appServer;
+
+    /// Configuration element for this protocol
+    const Plugins::I_ConfigurationElement*  m_pConfig;
 
     /// IO Service to perform asynchronous operations
     boost::asio::io_service             m_ioService;

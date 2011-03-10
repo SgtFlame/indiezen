@@ -74,6 +74,7 @@ namespace Service {
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 SessionService::SessionService(Zen::Enterprise::AppServer::I_ApplicationServer& _appServer)
 :   Zen::Enterprise::AppServer::scriptable_generic_service<Zen::Enterprise::Session::Server::I_SessionService, SessionService>(_appServer)
+,   m_pConfig(NULL)
 ,   m_pScriptObject(NULL)
 ,   m_pSesssionIdMutex(Threading::MutexFactory::create())
 ,   m_lastSessionId(0)
@@ -141,12 +142,21 @@ SessionService::registerScriptEngine(pScriptEngine_type _pScriptEngine)
 void
 SessionService::setConfiguration(const Zen::Plugins::I_ConfigurationElement& _config)
 {
+    m_pConfig = &_config;
+
     super::setConfiguration(_config);
 
     m_pDatabaseConfig = _config.getChild("database");
     m_pAccountClientConfig = _config.getChild("account-client");
     m_pAccountServiceConfig = _config.getChild("account-service");
     m_pAccountProtocolConfig = _config.getChild("account-protocol");
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+const Plugins::I_ConfigurationElement*
+SessionService::getConfiguration() const
+{
+    return m_pConfig;
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~

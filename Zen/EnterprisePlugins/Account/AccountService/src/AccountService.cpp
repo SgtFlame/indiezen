@@ -69,6 +69,7 @@ namespace Service {
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 AccountService::AccountService(Zen::Enterprise::AppServer::I_ApplicationServer& _appServer)
 :   Zen::Enterprise::AppServer::scriptable_generic_service<Zen::Enterprise::Account::Server::I_AccountService, AccountService>(_appServer)
+,   m_pConfig(NULL)
 ,   m_pScriptObject(NULL)
 ,   m_pAccountIdMutex(Threading::MutexFactory::create())
 ,   m_pAccountsLoadedCondition(Zen::Threading::ConditionFactory::create())
@@ -137,9 +138,18 @@ AccountService::registerScriptEngine(pScriptEngine_type _pScriptEngine)
 void
 AccountService::setConfiguration(const Zen::Plugins::I_ConfigurationElement& _config)
 {
+    m_pConfig = &_config;
+
     super::setConfiguration(_config);
 
     m_pDatabaseConfig = _config.getChild("database");
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+const Plugins::I_ConfigurationElement*
+AccountService::getConfiguration() const
+{
+    return m_pConfig;
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~

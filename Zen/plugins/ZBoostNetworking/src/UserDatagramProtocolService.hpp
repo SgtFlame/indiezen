@@ -81,6 +81,8 @@ public:
     /// @name I_StartupShutdownParticipant implementation
     /// @{
 public:
+    virtual void setConfiguration(const Zen::Plugins::I_ConfigurationElement& _config);
+    virtual const Plugins::I_ConfigurationElement* getConfiguration() const;
     virtual Zen::Threading::I_Condition* prepareToStart(Zen::Threading::ThreadPool& _threadPool);
     virtual void start();
     virtual Zen::Threading::I_Condition* prepareToStop();
@@ -91,7 +93,6 @@ public:
     /// @{
 public:
     virtual Zen::Enterprise::AppServer::I_ApplicationServer& getApplicationServer();
-    virtual void setConfiguration(const Zen::Plugins::I_ConfigurationElement& _config);
     virtual pEndpoint_type resolveEndpoint(const std::string& _address, const std::string& _port);
     virtual void sendTo(pMessage_type _pMessage, pEndpoint_type _pEndpoint);
     virtual void disconnect(pEndpoint_type _pEndpoint);
@@ -133,6 +134,8 @@ public:
 private:
     /// Reference to the parent application server to which this protocol service is bound
     Zen::Enterprise::AppServer::I_ApplicationServer&    m_appServer;
+
+    const Plugins::I_ConfigurationElement*              m_pConfig;
 
     /// Primary async IO service
     boost::asio::io_service                             m_ioService;

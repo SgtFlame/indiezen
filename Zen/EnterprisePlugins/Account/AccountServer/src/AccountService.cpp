@@ -49,6 +49,7 @@ namespace Server {
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 AccountService::AccountService(Zen::Enterprise::AppServer::I_ApplicationServer& _appServer)
 :   Zen::Enterprise::AppServer::scriptable_generic_service <Zen::Enterprise::Account::Server::I_AccountService, AccountService>(_appServer)
+,   m_pConfig(NULL)
 ,   m_pScriptObject(NULL)
 ,   m_pScriptModule(NULL)
 ,   m_pScriptEngine()
@@ -114,7 +115,16 @@ AccountService::registerScriptEngine(pScriptEngine_type _pScriptEngine)
 void
 AccountService::setConfiguration(const Zen::Plugins::I_ConfigurationElement& _config)
 {
+    m_pConfig = &_config;
+
     super::setConfiguration(_config);
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+const Plugins::I_ConfigurationElement*
+AccountService::getConfiguration() const
+{
+    return m_pConfig;
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~

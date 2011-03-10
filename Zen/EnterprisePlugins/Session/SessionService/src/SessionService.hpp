@@ -68,6 +68,7 @@ public:
     /// @{
 public:
     virtual void setConfiguration(const Zen::Plugins::I_ConfigurationElement& _config);
+    virtual const Plugins::I_ConfigurationElement* getConfiguration() const;
     virtual Zen::Threading::I_Condition* prepareToStart(Zen::Threading::ThreadPool& _threadPool);
     virtual void start();
     virtual Zen::Threading::I_Condition* prepareToStop();
@@ -136,6 +137,8 @@ protected:
     /// @name Member Variables
     /// @{
 private:
+    const Plugins::I_ConfigurationElement*              m_pConfig;
+
     pScriptEngine_type                                  m_pScriptEngine;
     Zen::Scripting::script_module*                      m_pScriptModule;
     Scripting::I_ObjectReference*                       m_pScriptObject;
