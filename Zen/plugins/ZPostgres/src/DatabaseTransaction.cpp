@@ -238,9 +238,7 @@ DatabaseTransaction::executeInsert(pQuery_type _pQuery, const std::string& _keyN
                 virtual void visit(const Zen::Database::I_DatabaseColumn& _column, const boost::any& _value)
                 {
                     m_pKey->setValue(
-                        boost::lexical_cast<boost::uint64_t, std::string>(
-                            boost::any_cast<std::string>(_value)
-                        )
+                        boost::any_cast<boost::int64_t>(_value)
                     );
                 }
 
