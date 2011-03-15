@@ -32,29 +32,31 @@
 #include <boost/assign/list_of.hpp>
 #include <boost/cstdint.hpp>
 
+#include <string>
+
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 namespace Zen {
 namespace Enterprise {
 namespace DataModel {
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 typedef std::map<
-    size_t,
+    std::string,
     DataElement::UnderlyingType
 >   TypeMap_type;
 
 static const TypeMap_type sm_typeMap = boost::assign::map_list_of
-    (typeid(boost::uint8_t).hash_code(), DataElement::INTEGER)
-    (typeid(boost::uint16_t).hash_code(), DataElement::INTEGER)
-    (typeid(boost::uint32_t).hash_code(), DataElement::INTEGER)
-    (typeid(boost::uint64_t).hash_code(), DataElement::INTEGER)
-    (typeid(boost::int8_t).hash_code(), DataElement::INTEGER)
-    (typeid(boost::int16_t).hash_code(), DataElement::INTEGER)
-    (typeid(boost::int32_t).hash_code(), DataElement::INTEGER)
-    (typeid(boost::int64_t).hash_code(), DataElement::INTEGER)
-    (typeid(float).hash_code(), DataElement::REAL)
-    (typeid(double).hash_code(), DataElement::REAL)
-    (typeid(boost::posix_time::ptime).hash_code(), DataElement::DATETIME)
-    (typeid(std::string).hash_code(), DataElement::STRING);
+    (std::string(typeid(boost::uint8_t).name()), DataElement::INTEGER)
+    (std::string(typeid(boost::uint16_t).name()), DataElement::INTEGER)
+    (std::string(typeid(boost::uint32_t).name()), DataElement::INTEGER)
+    (std::string(typeid(boost::uint64_t).name()), DataElement::INTEGER)
+    (std::string(typeid(boost::int8_t).name()), DataElement::INTEGER)
+    (std::string(typeid(boost::int16_t).name()), DataElement::INTEGER)
+    (std::string(typeid(boost::int32_t).name()), DataElement::INTEGER)
+    (std::string(typeid(boost::int64_t).name()), DataElement::INTEGER)
+    (std::string(typeid(float).name()), DataElement::REAL)
+    (std::string(typeid(double).name()), DataElement::REAL)
+    (std::string(typeid(boost::posix_time::ptime).name()), DataElement::DATETIME)
+    (std::string(typeid(std::string).name()), DataElement::STRING);
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 DataElement::DataElement()
 :   m_type(NULL_TYPE)
@@ -108,7 +110,7 @@ DataElement::setAnyValue(const boost::any& _value)
 {
     if (!_value.empty())
     {
-        TypeMap_type::const_iterator iter = sm_typeMap.find(_value.type().hash_code());
+        TypeMap_type::const_iterator iter = sm_typeMap.find(std::string(_value.type().name()));
         if (iter != sm_typeMap.end())
         {
             m_type = iter->second;
