@@ -28,6 +28,10 @@
 
 Zen::ZSQLite::DatabaseTypes gDatabaseTypes;
 
+#include <boost/assign/list_of.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/cstdint.hpp>
+
 #include <string>
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
@@ -38,7 +42,65 @@ class DataConverter
 {
 public:
     virtual const std::type_info& getTypeInfo() = 0;
+    virtual boost::any getAnyValue(const std::string& _value) = 0;
 };
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+class IntegerDataConverter
+:   public DataConverter
+{
+public:
+    virtual const std::type_info& getTypeInfo()
+    {
+        return typeid(boost::int64_t);
+    }
+
+    virtual boost::any getAnyValue(const std::string& _value)
+    {
+        return boost::any(boost::lexical_cast<boost::int64_t, std::string>(_value));
+    }
+
+};  // class IntegerData
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+class RealDataConverter
+:   public DataConverter
+{
+public:
+    virtual const std::type_info& getTypeInfo()
+    {
+        return typeid(double);
+    }
+
+    virtual boost::any getAnyValue(const std::string& _value)
+    {
+        return boost::any(boost::lexical_cast<double, std::string>(_value));
+    }
+
+};  // class RealDataConverter
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+class StringDataConverter
+:   public DataConverter
+{
+public:
+    virtual const std::type_info& getTypeInfo()
+    {
+        return typeid(std::string);
+    }
+
+    virtual boost::any getAnyValue(const std::string& _value)
+    {
+        return boost::any(_value);
+    }
+
+};  // class StringDataConverter
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+const DatabaseTypes::ConversionMap_type DatabaseTypes::sm_dataConversionMap = boost::assign::map_list_of
+    (std::string("INTEGER"), boost::shared_ptr<DataConverter>(new IntegerDataConverter))
+    (std::string("FLOAT"), boost::shared_ptr<DataConverter>(new RealDataConverter))
+    (std::string("VARCHAR"), boost::shared_ptr<DataConverter>(new StringDataConverter));
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 DatabaseTypes::DatabaseTypes()
@@ -54,9 +116,10 @@ DatabaseTypes::~DatabaseTypes()
 const std::type_info&
 DatabaseTypes::getTypeInfo(const std::string& _fieldType) const
 {
-    ConversionMap_type::const_iterator iter = m_dataConversionMap.find(_fieldType);
+    ConversionMap_type::const_iterator iter = 
+        sm_dataConversionMap.find(_fieldType);
 
-    if(iter == m_dataConversionMap.end())
+    if(iter == sm_dataConversionMap.end())
     {
         // Default to a string
         return typeid(std::string);
@@ -71,20 +134,21 @@ DatabaseTypes::getTypeInfo(const std::string& _fieldType) const
 boost::any
 DatabaseTypes::getData(sqlite3_stmt* _pResult, const DatabaseColumn& _column, int _fieldNumber) const
 {
-    ConversionMap_type::const_iterator iter = m_dataConversionMap.find(_column.getType().name());
+    std::string stringValue(
+        (const char*)sqlite3_column_text(_pResult, _fieldNumber)
+    );
 
-    if(iter == m_dataConversionMap.end())
+    ConversionMap_type::const_iterator iter = 
+        sm_dataConversionMap.find(std::string(sqlite3_column_decltype(_pResult, _fieldNumber)));
+
+    if(iter != sm_dataConversionMap.end())
     {
-        // Default to a string
-        std::string stringValue;
-        stringValue = (const char*)sqlite3_column_text(_pResult, _fieldNumber);
-
-        boost::any value(stringValue);
-        return value;
+        return iter->second->getAnyValue(stringValue);
     }
     else
     {
-        throw Utility::runtime_exception("DatabaseTypes::getData(): Error, not implemented");
+        boost::any value(stringValue);
+        return value;
     }
 }
 

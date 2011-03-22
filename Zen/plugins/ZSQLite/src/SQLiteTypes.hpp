@@ -27,6 +27,7 @@
 #include "sqlite3.h"
 
 #include <boost/any.hpp>
+#include <boost/shared_ptr.hpp>
 
 #include <string>
 #include <map>
@@ -40,18 +41,34 @@ class DatabaseColumn;
 
 class DatabaseTypes
 {
+    /// @name Types
+    /// @{
 public:
-     DatabaseTypes();
-    ~DatabaseTypes();
+    typedef std::map<std::string, boost::shared_ptr<DataConverter> >   ConversionMap_type;
+    /// @}
 
+    /// @name DatabaseTypes implementation
+    /// @{
+public:
     /// Get the type_info for a specified field type.
     const std::type_info& getTypeInfo(const std::string& _fieldType) const;
 
     boost::any getData(sqlite3_stmt* _pResult, const DatabaseColumn& _column, int _fieldNumber) const;
+    /// @}
 
+    /// @name 'Structors
+    /// @{
+public:
+     DatabaseTypes();
+    ~DatabaseTypes();
+    /// @}
+
+    /// @name Member Variables
+    /// @{
 private:
-    typedef std::map<std::string, DataConverter*>   ConversionMap_type;
-    ConversionMap_type                              m_dataConversionMap;
+    static const ConversionMap_type     sm_dataConversionMap;
+    /// @}
+    
 };  // class DatabaseTypes
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~

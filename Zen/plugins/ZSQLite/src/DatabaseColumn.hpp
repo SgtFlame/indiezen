@@ -54,6 +54,7 @@ public:
     /// @name DatabaseColumn implementation
     /// @{
 public:
+    const std::string& getSQLiteType() const;
     /// @}
 
     /// @name 'Structors
