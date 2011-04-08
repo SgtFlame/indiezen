@@ -49,7 +49,7 @@ if (NOT MSVC)
 install ( FILES 
     plugin.xml
     DESTINATION
-    /etc/Zen/${PROJECT_PREFIX}/
+    ${CMAKE_INSTALL_PREFIX}../../etc/Zen/${PROJECT_PREFIX}/
 )
 endif (NOT MSVC)
 

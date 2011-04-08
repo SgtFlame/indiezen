@@ -433,6 +433,7 @@ public:
 
     void registerMessageHandler(pMessageType_type _pMessageType, boost::function<void(pMessage_type)> _function);
     void unregisterMessageHandler(pMessageType_type _pMessageType);
+    void pushTask(Zen::Threading::ThreadPool::Task* _pTask);
     /// @}
 
     /// @name 'Structors
@@ -872,6 +873,15 @@ scriptable_generic_service<BaseClass_type, Class_type>::unregisterMessageHandler
     }
 
     /// TODO Exception?
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+template<typename BaseClass_type, typename Class_type>
+inline
+void
+scriptable_generic_service<BaseClass_type, Class_type>::pushTask(Zen::Threading::ThreadPool::Task* _pTask)
+{
+    m_pThreadPool->pushRequest(_pTask);
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
