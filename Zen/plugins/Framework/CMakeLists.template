@@ -18,7 +18,7 @@ if (NOT MSVC)
 install ( FILES 
     plugin.xml
     DESTINATION
-    /etc/Zen/${PROJECT_PREFIX}/
+    ${CMAKE_INSTALL_PREFIX}../../etc/Zen/${PROJECT_PREFIX}/
 )
 
 install ( FILES
@@ -49,7 +49,7 @@ install ( FILES
     schema/rendering.exsd
     schema/cloud.exsd
 	DESTINATION
-	/etc/Zen/${PROJECT_PREFIX}/schema/
+    ${CMAKE_INSTALL_PREFIX}../../etc/Zen/${PROJECT_PREFIX}/
 )
 
 endif (NOT MSVC)
