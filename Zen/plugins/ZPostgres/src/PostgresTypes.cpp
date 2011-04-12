@@ -33,6 +33,7 @@ Zen::ZPostgres::DatabaseTypes gDatabaseTypes;
 #include <boost/assign/list_of.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/cstdint.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 #include <string>
 #include <map>
@@ -60,6 +61,11 @@ public:
 
     virtual boost::any getAnyValue(const std::string& _value)
     {
+        if (_value == "")
+        {
+            return boost::any();
+        }
+
         return boost::any(boost::lexical_cast<boost::int64_t, std::string>(_value));
     }
 
@@ -77,10 +83,37 @@ public:
 
     virtual boost::any getAnyValue(const std::string& _value)
     {
+        if (_value == "")
+        {
+            return boost::any();
+        }
+
         return boost::any(boost::lexical_cast<double, std::string>(_value));
     }
 
 };  // class RealDataConverter
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+class TimestampDataConverter
+:   public DataConverter
+{
+public:
+    virtual const std::type_info& getTypeInfo()
+    {
+        return typeid(boost::posix_time::ptime);
+    }
+
+    virtual boost::any getAnyValue(const std::string& _value)
+    {
+        if (_value == "")
+        {
+            return boost::any();
+        }
+
+        return boost::any(boost::posix_time::time_from_string(_value));
+    }
+
+};  // class TimestampDataConverter
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 class StringDataConverter
@@ -94,6 +127,11 @@ public:
 
     virtual boost::any getAnyValue(const std::string& _value)
     {
+        if (_value == "")
+        {
+            return boost::any();
+        }
+
         return boost::any(_value);
     }
 
@@ -106,6 +144,7 @@ const DatabaseTypes::ConversionMap_type DatabaseTypes::sm_dataConversionMap = bo
     (DatabaseTypes::INT4OID, boost::shared_ptr<DataConverter>(new IntegerDataConverter))
     (DatabaseTypes::FLOAT4OID, boost::shared_ptr<DataConverter>(new RealDataConverter))
     (DatabaseTypes::FLOAT8OID, boost::shared_ptr<DataConverter>(new RealDataConverter))
+    (DatabaseTypes::TIMESTAMPOID, boost::shared_ptr<DataConverter>(new TimestampDataConverter))
     (DatabaseTypes::VARCHAROID, boost::shared_ptr<DataConverter>(new StringDataConverter));
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
