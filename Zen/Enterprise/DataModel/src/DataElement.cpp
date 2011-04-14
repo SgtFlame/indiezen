@@ -290,12 +290,19 @@ DataElement::getDateTimeValue() const
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-I_DataElement&
-DataElement::operator=(const boost::posix_time::ptime& _value)
+void
+DataElement::setDateTimeValue(const boost::posix_time::ptime& _value)
 {
     m_value = _value;
     m_type = DATETIME;
     setDirty(true);
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+I_DataElement&
+DataElement::operator=(const boost::posix_time::ptime& _value)
+{
+    setDateTimeValue(_value);
     return *this;
 }
 

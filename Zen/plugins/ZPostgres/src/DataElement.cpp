@@ -154,6 +154,13 @@ DataElement::getDateTimeValue() const
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+void
+DataElement::setDateTimeValue(const boost::posix_time::ptime& _value)
+{
+    m_pElement->setDateTimeValue(_value);
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 Zen::Enterprise::DataModel::I_DataElement&
 DataElement::operator=(const boost::posix_time::ptime& _value)
 {

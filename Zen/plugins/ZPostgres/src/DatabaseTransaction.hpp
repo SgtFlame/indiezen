@@ -37,6 +37,9 @@
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 namespace Zen {
+    namespace Threading {
+        class I_Condition;
+    }   // namespace I_Condition
 namespace ZPostgres {
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 
@@ -73,6 +76,7 @@ public:
 public:
     void reset();
     std::string generateStatementName(DatabaseQuery* _pQuery);
+    Threading::I_Condition& completeCondition();
     /// @}
 
     /// @name Event handlers
@@ -94,17 +98,25 @@ public:
     /// @name Member variables
     /// @{
 private:
-    bool                m_isActive;
+    bool                    m_isActive;
     
-    bool                m_isCommitted;
+    bool                    m_isCommitted;
 
-    PGconn*             m_pConnection;
+    PGconn*                 m_pConnection;
+
+    Threading::I_Condition* m_pCompleteCondition;
     /// @}
 
 };  // class DatabaseTransaction
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 }   // namespace ZPostgres
+namespace Memory 
+{
+    /// DatabaseTransaction is managed by a factory
+    template<>
+    struct is_managed_by_factory<ZPostgres::DatabaseTransaction> : public boost::true_type{};
+}   // namespace Memory
 }   // namespace Zen
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 

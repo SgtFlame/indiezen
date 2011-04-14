@@ -32,10 +32,8 @@
 
 #include <Zen/Core/Utility/runtime_exception.hpp>
 
-#include <Zen/Enterprise/Database/I_DatabaseQuery.hpp>
-#include <Zen/Enterprise/Database/I_DatabaseStaticQuery.hpp>
-#include <Zen/Enterprise/Database/I_DatabaseDynamicQuery.hpp>
-#include <Zen/Enterprise/Database/I_DatabaseCommand.hpp>
+#include <Zen/Core/Threading/I_Condition.hpp>
+#include <Zen/Core/Threading/ConditionFactory.hpp>
 
 #include <boost/bind.hpp>
 #include <sstream>
@@ -47,7 +45,8 @@ namespace ZSQLite {
 DatabaseTransaction::DatabaseTransaction(sqlite3* _pConnection)
 :   m_pConnection(_pConnection)
 ,   m_isCommitted(false)
-,   m_isActive(true)
+,   m_isActive(false)
+,   m_pCompleteCondition(Threading::ConditionFactory::create())
 {
 
 }
@@ -59,6 +58,8 @@ DatabaseTransaction::~DatabaseTransaction()
     {
         rollback();
     }
+
+    Threading::ConditionFactory::destroy(m_pCompleteCondition);
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
@@ -218,6 +219,7 @@ DatabaseTransaction::commit()
 
     m_isCommitted = true;
     m_isActive = false;
+    m_pCompleteCondition->assertCondition();
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
@@ -232,6 +234,7 @@ DatabaseTransaction::rollback()
 
     m_isCommitted = false;
     m_isActive = false;
+    m_pCompleteCondition->assertCondition();
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
@@ -266,6 +269,15 @@ DatabaseTransaction::reset()
 
     this->m_isActive = true;
     this->m_isCommitted = false;
+    m_pCompleteCondition->retractCondition();
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+Threading::I_Condition&
+DatabaseTransaction::completeCondition()
+{
+    assert (m_pCompleteCondition != NULL);
+    return *m_pCompleteCondition;
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
