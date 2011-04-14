@@ -32,6 +32,9 @@
 
 #include <Zen/Core/Utility/runtime_exception.hpp>
 
+#include <Zen/Core/Threading/I_Condition.hpp>
+#include <Zen/Core/Threading/ConditionFactory.hpp>
+
 #include <boost/bind.hpp>
 #include <boost/functional/hash.hpp>
 #include <boost/lexical_cast.hpp>
@@ -44,7 +47,8 @@ namespace ZPostgres {
 DatabaseTransaction::DatabaseTransaction(PGconn* _pConnection)
 :   m_pConnection(_pConnection)
 ,   m_isCommitted(false)
-,   m_isActive(true)
+,   m_isActive(false)
+,   m_pCompleteCondition(Threading::ConditionFactory::create())
 {
 }
 
@@ -55,6 +59,8 @@ DatabaseTransaction::~DatabaseTransaction()
     {
         rollback();
     }
+
+    Threading::ConditionFactory::destroy(m_pCompleteCondition);
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
@@ -372,6 +378,7 @@ DatabaseTransaction::commit()
 
     m_isCommitted = true;
     m_isActive = false;
+    m_pCompleteCondition->assertCondition();
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
@@ -390,6 +397,7 @@ DatabaseTransaction::rollback()
 
     m_isCommitted = false;
     m_isActive = false;
+    m_pCompleteCondition->assertCondition();
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
@@ -424,6 +432,7 @@ DatabaseTransaction::reset()
 
     this->m_isActive = true;
     this->m_isCommitted = false;
+    m_pCompleteCondition->retractCondition();
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
@@ -436,6 +445,14 @@ DatabaseTransaction::generateStatementName(DatabaseQuery* _pQuery)
     name << string_hash(std::string((const char *)&_pQuery, sizeof(DatabaseQuery*)));
 
     return name.str();
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+Threading::I_Condition&
+DatabaseTransaction::completeCondition()
+{
+    assert (m_pCompleteCondition != NULL);
+    return *m_pCompleteCondition;
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~

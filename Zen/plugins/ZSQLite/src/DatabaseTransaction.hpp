@@ -26,20 +26,24 @@
 #ifndef ZEN_ZSQLITE_DATABASE_TRANSACTION_HPP_INCLUDED
 #define ZEN_ZSQLITE_DATABASE_TRANSACTION_HPP_INCLUDED
 
+#include "DatabaseConnection.hpp"
+
 #include "SQLiteTypes.hpp"
 
 #include <Zen/Core/Memory/managed_ptr.hpp>
 #include <Zen/Core/Memory/managed_weak_ptr.hpp>
-#include <Zen/Enterprise/Database/I_DatabaseConnection.hpp>
 #include <Zen/Enterprise/Database/I_DatabaseTransaction.hpp>
 #include <Zen/Enterprise/Database/I_DatabaseResult.hpp>
 
-#include "DatabaseConnection.hpp"
-
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 namespace Zen {
+    namespace Threading {
+        class I_Condition;
+    }   // namespace Threading
 namespace ZSQLite {
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+
+class DatabaseQuery;
 
 class DatabaseTransaction
 :   public Zen::Database::I_DatabaseTransaction
@@ -71,6 +75,7 @@ public:
     /// @{
 public:
     void reset();
+    Threading::I_Condition& completeCondition();
     /// @}
 
     /// @name Event handlers
@@ -97,12 +102,20 @@ private:
     bool                m_isCommitted;
 
     sqlite3*            m_pConnection;
+
+    Threading::I_Condition* m_pCompleteCondition;
     /// @}
 
 };  // class DatabaseTransaction
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 }   // namespace ZSQLite
+namespace Memory 
+{
+    /// DatabaseTransaction is managed by a factory
+    template<>
+    struct is_managed_by_factory<ZSQLite::DatabaseTransaction> : public boost::true_type{};
+}   // namespace Memory
 }   // namespace Zen
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 

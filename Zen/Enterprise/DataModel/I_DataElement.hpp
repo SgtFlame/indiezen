@@ -103,6 +103,7 @@ public:
 
     /// @return the data element value as a boost::posix_time::ptime
     virtual boost::posix_time::ptime getDateTimeValue() const = 0;
+    virtual void setDateTimeValue(const boost::posix_time::ptime& _value) = 0;
     virtual I_DataElement& operator=(const boost::posix_time::ptime& _value) = 0;
     virtual operator boost::posix_time::ptime() = 0;
 

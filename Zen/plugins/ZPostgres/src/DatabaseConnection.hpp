@@ -39,6 +39,7 @@ namespace Zen {
 namespace ZPostgres {
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 class DatabaseService;
+class DatabaseTransaction;
 
 class DatabaseConnection
 : public Database::I_DatabaseConnection
@@ -68,7 +69,8 @@ public:
 
     /// @name Event Handlers
     /// @{
-    void onDestroyTransaction(wpDatabaseTransaction_type _pDatabaseTransaction);
+    typedef Zen::Memory::managed_weak_ptr<DatabaseTransaction>  wpConcreteDatabaseTransaction_type;
+    static void onDestroyTransaction(wpConcreteDatabaseTransaction_type _pDatabaseTransaction);
     /// @}
 
     /// @name 'Structors
@@ -92,7 +94,12 @@ private:
 
     /// Keep a weak pointer so the client application can let it
     /// be destroyed when it goes out of scope.
-    wpDatabaseTransaction_type  m_pTransaction;
+    /// mgray@one.ducommun.com -- 2011/04/14
+    /// Changed this to a strong concrete reference and set up to 
+    /// reuse the reference on reset.
+    typedef Zen::Memory::managed_ptr<DatabaseTransaction>   pConcreteDatabaseTransaction_type;
+    pConcreteDatabaseTransaction_type   m_pTransaction;
+    //pDatabaseTransaction_type   m_pTransaction;
     /// @}
 
 };  // class DatabaseConnection

@@ -43,7 +43,10 @@ DatabaseConnection::DatabaseConnection(pDatabaseService_type _pDatabase, const s
 :   m_pDatabase(_pDatabase)
 ,   m_name(_name)
 ,   m_pConnection(_pConnection)
-,   m_pTransaction()
+,   m_pTransaction(
+        new DatabaseTransaction(m_pConnection),
+        DatabaseConnection::onDestroyTransaction
+    )
 {
 }
 
@@ -68,25 +71,14 @@ DatabaseConnection::getName() const
 DatabaseConnection::pDatabaseTransaction_type
 DatabaseConnection::beginTransaction()
 {
-    if (!m_pTransaction.expired())
+    if (m_pTransaction->isActive())
     {
-        throw Utility::runtime_exception("Nested transactions are not supported.");
+        m_pTransaction->completeCondition().requireCondition();
     }
-    else
-    {
-        DatabaseTransaction* pRawDatabaseTransaction = 
-            new DatabaseTransaction(m_pConnection);
 
-        pDatabaseTransaction_type pTransaction(
-            pRawDatabaseTransaction,
-            boost::bind(&DatabaseConnection::onDestroyTransaction, this, _1)
-        );
+    m_pTransaction->reset();
 
-        wpDatabaseTransaction_type pWeakTransaction(pTransaction);
-        m_pTransaction = pWeakTransaction;
-
-        return pTransaction;
-    }
+    return m_pTransaction.as<pDatabaseTransaction_type>();
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
@@ -105,11 +97,8 @@ DatabaseConnection::rollbackTransaction(pDatabaseTransaction_type _pDatabaseTran
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 void
-DatabaseConnection::onDestroyTransaction(wpDatabaseTransaction_type _wpDatabaseTransaction)
+DatabaseConnection::onDestroyTransaction(wpConcreteDatabaseTransaction_type _wpDatabaseTransaction)
 {
-    /// Fire the DatabaseTransaction's onDestroyEvent
-    _wpDatabaseTransaction->onDestroyEvent(_wpDatabaseTransaction);
-
     /// Delete the DatabaseTransaction
     DatabaseTransaction* pDatabaseTransaction = 
         dynamic_cast<DatabaseTransaction*>(_wpDatabaseTransaction.get());
