@@ -489,7 +489,6 @@ TransmissionControlProtocolService::onDisconnected(pConnection_type _pConnection
 void
 TransmissionControlProtocolService::onHandleMessage(pConnection_type  _pConnection, TCP::MessageBuffer& _message)
 {
-#if 1
     boost::iostreams::stream<boost::iostreams::array> 
         stream(_message.getBody(), _message.getBodyLength());
 
@@ -519,38 +518,6 @@ TransmissionControlProtocolService::onHandleMessage(pConnection_type  _pConnecti
 
     // Send the message to the application server
     getApplicationServer().handleMessage(pMessage);
-#else
-    std::stringbuf buffer(std::ios_base::in|std::ios_base::binary);
-
-    buffer.pubsetbuf(_message.getBody(), _message.getBodyLength());
-
-    std::stringstream stream;
-    buffer.pubseekpos(0);
-    stream.str(buffer.str());
-
-    boost::archive::polymorphic_binary_iarchive archive(stream, 
-                                                        boost::archive::no_header |
-                                                        boost::archive::no_tracking);
-
-
-    
-    // Deserialize the header
-    I_Message::pMessageHeader_type pHeader = getApplicationServer().getMessageRegistry()->getMessageHeader(archive);
-
-    // Construct the appropriate message
-    pMessage_type pMessage = pHeader->getMessageType()->getMessageFactory()
-        ->create(
-            pHeader, 
-            _pConnection->getPeer(), 
-            pEndpoint_type()
-        );
-
-    // Deserialize the message
-    pMessage->serialize(pHeader, archive, 0);
-
-    // Send the message to the application server
-    getApplicationServer().handleMessage(pMessage);
-#endif
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~

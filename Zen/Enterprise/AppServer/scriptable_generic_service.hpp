@@ -769,7 +769,7 @@ scriptable_generic_service<BaseClass_type, Class_type>::send(create_request<Requ
     getApplicationServer().handleRequest(_request.m_pRequest, pResponseHandler);
 
     AsyncTimeoutTask<BaseClass_type, Class_type>* pTask = new AsyncTimeoutTask<BaseClass_type, Class_type>(
-        2000,
+        5000,
         _request.m_pRawRequest->getMessageId(),
         *this
     );

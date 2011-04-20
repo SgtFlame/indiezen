@@ -91,6 +91,13 @@ protected:
 
     void writeMore();
 
+    /// Called to determine if a complete message has been written
+    std::size_t messageBytesRemaining(const boost::system::error_code& _errorCode, std::size_t _bytesTransferred);
+
+    std::size_t headerBytesRead(const boost::system::error_code& _errorCode, std::size_t _bytesRead);
+
+    std::size_t bodyBytesRead(const boost::system::error_code& _errorCode, std::size_t _bytesRead);
+
     /// Called after the header is read
     void handleReadHeader(const boost::system::error_code& _errorCode);
 

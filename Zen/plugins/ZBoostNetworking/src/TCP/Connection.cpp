@@ -57,6 +57,21 @@ Connection::Connection(boost::asio::io_service& _ioService, TransmissionControlP
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 Connection::~Connection()
 {
+    if (m_connected)
+    {
+        disconnect();
+    }
+
+    {
+        Threading::CriticalSection lock(m_pWriteQueueGuard);
+
+        while (!m_writeMessages.empty())
+        {
+            delete m_writeMessages.front();
+            m_writeMessages.pop_front();
+        }
+    }
+
     Threading::MutexFactory::destroy(m_pWriteQueueGuard);
     // m_pHandler is destroyed in Connection::write()
 }
@@ -86,6 +101,7 @@ Connection::connect(pEndpoint_type _pEndpoint)
 void
 Connection::disconnect()
 {
+    m_connected = false;
     m_socket.close();
     m_protocolService.onDisconnected(shared_from_this());
 }
@@ -114,10 +130,7 @@ Connection::handleConnect(const boost::system::error_code& _errorCode)
     }
     else
     {
-        m_connected = false;
-
-        // Not connected
-        m_protocolService.onDisconnected(shared_from_this());
+        disconnect();
     }
 }
 
@@ -135,17 +148,28 @@ Connection::start(pEndpoint_type _pEndpoint)
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+std::size_t
+Connection::headerBytesRead(const boost::system::error_code& _errorCode, std::size_t _bytesRead)
+{
+    return MessageBuffer::HEADER_LENGTH - _bytesRead;
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 void
 Connection::readMore()
 {
-    // Asynchronously read some data from the connection into the buffer.
-    // Using shared_from_this() will prevent this Connection object from
-    // being destroyed while data is being read.
-    boost::asio::async_read(m_socket, 
-        boost::asio::buffer(m_readMessage.getData(), MessageBuffer::HEADER_LENGTH),
-            boost::bind(&Connection::handleReadHeader, shared_from_this(),
-            boost::asio::placeholders::error)
-    );
+    if (m_connected)
+    {
+        // Asynchronously read some data from the connection into the buffer.
+        // Using shared_from_this() will prevent this Connection object from
+        // being destroyed while data is being read.
+        boost::asio::async_read(m_socket, 
+            boost::asio::buffer(m_readMessage.getData(), MessageBuffer::HEADER_LENGTH),
+            boost::bind(&Connection::headerBytesRead, shared_from_this(), boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred),
+                boost::bind(&Connection::handleReadHeader, shared_from_this(),
+                boost::asio::placeholders::error)
+        );
+    }
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
@@ -170,7 +194,7 @@ Connection::write(const char* _buffer, boost::uint32_t _size)
 
     // Write the message on the front of the queue if a write wasn't
     // already in progress.
-    if (!writeInProgress && m_connected)
+    if (!writeInProgress)
     {
         writeMore();
     }
@@ -191,6 +215,13 @@ Connection::getProtocolService()
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+std::size_t
+Connection::bodyBytesRead(const boost::system::error_code& _errorCode, std::size_t _bytesRead)
+{
+    return m_readMessage.getBodyLength() - _bytesRead;
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 void
 Connection::handleReadHeader(const boost::system::error_code& _errorCode)
 {
@@ -198,14 +229,14 @@ Connection::handleReadHeader(const boost::system::error_code& _errorCode)
     {
         boost::asio::async_read(m_socket, 
             boost::asio::buffer(m_readMessage.getBody(), m_readMessage.getBodyLength()),
+                boost::bind(&Connection::bodyBytesRead, shared_from_this(), boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred),
                 boost::bind(&Connection::handleReadBody, shared_from_this(),
                 boost::asio::placeholders::error)
         );
     }
     else
     {
-        m_connected = false;
-        m_protocolService.onDisconnected(shared_from_this());
+        disconnect();
     }
 }
 
@@ -220,8 +251,7 @@ Connection::handleReadBody(const boost::system::error_code& _errorCode)
     }
     else
     {
-        m_connected = false;
-        m_protocolService.onDisconnected(shared_from_this());
+        disconnect();
     }
 }
 
@@ -243,9 +273,15 @@ Connection::handleWrite(const boost::system::error_code& _errorCode)
     {
         // The write failed, so don't delete the message
         std::cout << _errorCode.message() << std::endl;
-        m_connected = false;
-        m_protocolService.onDisconnected(shared_from_this());
+        disconnect();
     }
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+std::size_t
+Connection::messageBytesRemaining(const boost::system::error_code& _errorCode, std::size_t _bytesTransferred)
+{
+    return m_writeMessages.front()->getLength() - _bytesTransferred;
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
@@ -253,10 +289,11 @@ void
 Connection::writeMore()
 {
     // If there's more to write then write the next message in line
-    if (!m_writeMessages.empty())
+    if (!m_writeMessages.empty() && m_connected)
     {
         boost::asio::async_write(m_socket, 
             boost::asio::buffer(m_writeMessages.front()->getData(), m_writeMessages.front()->getLength()),
+            boost::bind(&Connection::messageBytesRemaining, shared_from_this(), boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred),
             boost::bind(&Connection::handleWrite, shared_from_this(),
             boost::asio::placeholders::error));
     }
