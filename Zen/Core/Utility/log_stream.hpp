@@ -74,7 +74,7 @@ public:
 public:
     std::streamsize write(const char* _s, std::streamsize _n)
     {
-        std::string str(_s, _n);
+        std::string str(_s, static_cast<unsigned int>(_n));
 
         m_pLog->logMessage(str, m_logMessageLevel, m_maskDebug);
 
@@ -83,7 +83,7 @@ public:
 
     std::streamsize write(const wchar_t* _s, std::streamsize _n)
     {
-        std::wstring str(_s, _n);
+        std::wstring str(_s, static_cast<unsigned int>(_n));
 
         m_pLog->logMessage(std::string(str), m_logMessageLevel, m_maskDebug);
 
