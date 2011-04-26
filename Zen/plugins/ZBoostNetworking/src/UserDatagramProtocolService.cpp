@@ -1,8 +1,8 @@
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 // Zen Enterprise Framework
 //
-// Copyright (C) 2001 - 2009 Tony Richards
-// Copyright (C) 2008 - 2009 Matthew Alan Gray
+// Copyright (C) 2001 - 2011 Tony Richards
+// Copyright (C) 2008 - 2011 Matthew Alan Gray
 //
 //  This software is provided 'as-is', without any express or implied
 //  warranty.  In no event will the authors be held liable for any damages
@@ -21,23 +21,24 @@
 //  3. This notice may not be removed or altered from any source distribution.
 //
 //  Tony Richards trichards@indiezen.com
-//  Matthew Alan Gray mgray@indiezen.org
+//  Matthew Alan Gray mgray@hatboystudios.com
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 #include <boost/asio.hpp>
 
 #include "UserDatagramProtocolService.hpp"
-#include "UDP/Message.hpp"
-#include "UDP/MessageBuffer.hpp"
-#include "UDP/Address.hpp"
 
 #include "UDP/Endpoint.hpp"
-
-#include "UDP/SendTask.hpp"
-#include "UDP/SendTaskAllocator.hpp"
 
 #include <Zen/Core/Utility/runtime_exception.hpp>
 
 #include <Zen/Core/Threading/ThreadFactory.hpp>
+#include <Zen/Core/Threading/MutexFactory.hpp>
+#include <Zen/Core/Threading/CriticalSection.hpp>
+
+#include <Zen/Core/Plugins/I_ConfigurationElement.hpp>
+
+#include <Zen/Core/Event/I_Event.hpp>
+#include <Zen/Core/Event/I_EventService.hpp>
 
 #include <Zen/Enterprise/AppServer/I_Message.hpp>
 #include <Zen/Enterprise/AppServer/I_MessageFactory.hpp>
@@ -52,9 +53,9 @@
 #include <boost/archive/polymorphic_binary_oarchive.hpp>
 #include <boost/archive/polymorphic_binary_iarchive.hpp>
 
-#include <boost/lexical_cast.hpp>
+#include <boost/iostreams/device/array.hpp>
+#include <boost/iostreams/stream.hpp>
 
-#include <sstream>
 #include <iostream>
 
 #include <stdlib.h>
@@ -64,25 +65,26 @@
 namespace Zen {
 namespace Enterprise {
 namespace AppServer {
-namespace UDP {
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 UserDatagramProtocolService::UserDatagramProtocolService(Zen::Enterprise::AppServer::I_ApplicationServer& _appServer)
 :   m_appServer(_appServer)
 ,   m_pConfig(NULL)
 ,   m_ioService()
+,   m_socket(m_ioService)
+,   m_strand(m_ioService)
 ,   m_pWork(NULL)
 ,   m_address()
 ,   m_port()
 ,   m_threadCount(2)
-,   m_pSocket(NULL)
-,   m_sendTaskAllocator()
-,   m_sendTaskPool(m_sendTaskAllocator)
+,   m_threadsStarted(false)
+,   m_pSessionsGuard(Zen::Threading::MutexFactory::create())
 {
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 UserDatagramProtocolService::~UserDatagramProtocolService()
 {
+    Zen::Threading::MutexFactory::destroy(m_pSessionsGuard);
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
@@ -93,9 +95,16 @@ UserDatagramProtocolService::setConfiguration(const Zen::Plugins::I_Configuratio
 
     m_address = _config.getAttribute("address");
     m_port = _config.getAttribute("port");
+    m_threadCount = strtol(_config.getAttribute("threads").c_str(), NULL, 10);
 
-    // TODO Need to support thread count as an optional parameter
-    //m_threadCount = boost::lexical_cast<long,std::string>(_config.getAttribute("threads"));
+    if (m_address.empty() || m_port.empty())
+    {
+        m_isServer = false;
+    }
+    else
+    {
+        m_isServer = true;
+    }
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
@@ -114,18 +123,25 @@ UserDatagramProtocolService::resolveEndpoint(const std::string& _address,
     boost::asio::ip::udp::resolver::query query(_address,_port);
     boost::asio::ip::udp::endpoint endpoint = *resolver.resolve(query);
 
-    boost::asio::ip::address address = endpoint.address();
-    pAddress_type pAddress = createAddress(address);
-    return pEndpoint_type(new Endpoint(getSelfReference(), endpoint, pAddress),
-        boost::bind(&UserDatagramProtocolService::destroyEndpoint,this,_1));
+    pEndpoint_type pEndpoint(
+        new UDP::Endpoint(getSelfReference(), endpoint),
+        boost::bind(&UserDatagramProtocolService::destroyEndpoint, this, _1)
+    );
+
+    // Default to true.  Generally an endpoint is outbound when resolveEndpoint()
+    // is called.  Since "listen()" is not a valid method (listen ports are 
+    // determined by the configuration) then we probably aren't ever creating
+    // a non-local endpoint.
+    pEndpoint->setIsLocal(false);
+    return pEndpoint;
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 void
-UserDatagramProtocolService::destroyEndpoint(wpEndpoint_type& _pEndpoint)
+UserDatagramProtocolService::destroyEndpoint(wpEndpoint_type _pEndpoint)
 {
     // Delete the Endpoint
-    Endpoint* pEndpoint = dynamic_cast<Endpoint*>(_pEndpoint.get());
+    UDP::Endpoint* pEndpoint = dynamic_cast<UDP::Endpoint*>(_pEndpoint.get());
 
     if( pEndpoint != NULL )
     {
@@ -141,16 +157,18 @@ UserDatagramProtocolService::destroyEndpoint(wpEndpoint_type& _pEndpoint)
 Zen::Threading::I_Condition*
 UserDatagramProtocolService::prepareToStart(Zen::Threading::ThreadPool& _threadPool)
 {
-    m_pThreadPool = &_threadPool;
+    if (m_isServer)
+    {
+        // Resolve the address
+        boost::asio::ip::udp::resolver resolver(m_ioService);
+        boost::asio::ip::udp::resolver::query query(boost::asio::ip::udp::v4(), m_port);
+        boost::asio::ip::udp::endpoint endpoint = *resolver.resolve(query);
 
-    // Resolve the address
-    boost::asio::ip::udp::resolver resolver(m_ioService);
-    boost::asio::ip::udp::resolver::query query(boost::asio::ip::udp::v4(), m_port);
-    boost::asio::ip::udp::resolver::iterator iter = resolver.resolve(query);
-    boost::asio::ip::udp::endpoint endpoint = *resolver.resolve(query);
+        m_socket.bind(endpoint);
+    }
 
-    m_pSocket = new boost::asio::ip::udp::socket(m_ioService, endpoint);
-    //m_pSocket = new boost::asio::ip::udp::socket(m_ioService, boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), 0));
+    // Create a new session
+    createSession();
 
     // Ready to go, so don't bother returning a condition variable
     return NULL;
@@ -160,60 +178,13 @@ UserDatagramProtocolService::prepareToStart(Zen::Threading::ThreadPool& _threadP
 void
 UserDatagramProtocolService::start()
 {
-    receiveFrom();
-
-    class Runnable
-    :   public Zen::Threading::I_Runnable
+    if (m_isServer)
     {
-    public:
-        virtual void run() throw()
-        {
-            while(!m_stopping)
-            {
-                try
-                {
-                    boost::system::error_code ec;
-                    m_ioService.run(ec);
-
-                    if( ec )
-                    {
-                        std::cout << "ASIO Error: " << ec << std::endl;
-                    }
-                }
-                catch(...)
-                {
-                }
-            }
-        }
-
-        virtual void stop()
-        {
-            m_stopping = true;
-        }
-
-        Runnable(boost::asio::io_service& _ioService)
-        :   m_ioService(_ioService)
-        ,   m_stopping(false)
-        {
-        }
-
-        boost::asio::io_service& m_ioService;
-        volatile bool m_stopping;
-    };
-
-    m_pWork = new boost::asio::io_service::work(m_ioService);
-
-    // Reserve the correct amount of space.
-    m_threads.reserve(m_threadCount);
-
-    // Start some threads that will execute m_ioService.run()
-    for(int x = 0; x < m_threadCount; ++x)
-    {
-        Zen::Threading::I_Thread* pThread =
-            Zen::Threading::ThreadFactory::create(new Runnable(m_ioService));
-        m_threads.push_back(pThread);
-        pThread->start();
+        // Listen via UDP
+        asyncEstablish();        
     }
+
+    startThreads();
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
@@ -222,10 +193,9 @@ UserDatagramProtocolService::prepareToStop()
 {
     delete m_pWork;
 
-    m_sendTaskPool.stop();
+    Zen::Threading::CriticalSection lock(m_pSessionsGuard);
 
-    for(threadCollection_type::iterator iter = m_threads.begin();
-        iter != m_threads.end(); iter++ )
+    for (Threads_type::iterator iter = m_threads.begin(); iter != m_threads.end(); iter++)
     {
         (*iter)->stop();
     }
@@ -239,16 +209,166 @@ UserDatagramProtocolService::prepareToStop()
 void
 UserDatagramProtocolService::stop()
 {
-    for(threadCollection_type::iterator iter = m_threads.begin();
-        iter != m_threads.end(); iter++ )
+    // Join all of the threads
+    for (Threads_type::iterator iter = m_threads.begin(); iter != m_threads.end(); iter++)
     {
         (*iter)->join();
         Zen::Threading::ThreadFactory::destroy(*iter);
     }
 
-    m_threads.clear();
+    // Don't lock until we're done joining, otherwise we may get
+    // a deadlock.
+    Zen::Threading::CriticalSection lock(m_pSessionsGuard);
 
-    m_pThreadPool = NULL;
+    m_threads.clear();
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+inline
+void
+UserDatagramProtocolService::startThreads()
+{
+    // Check to make sure the threads have not been started
+    if (m_threadsStarted)
+    {
+        return;
+    }
+
+    // Not started, but need to double-check while inside of
+    // a critical section
+    Threading::CriticalSection lock(m_pSessionsGuard);
+
+    // Still not started?
+    if (m_threadsStarted)
+    {
+        return;
+    }
+
+    // Start the threads
+
+    class Runnable
+    :   public Threading::I_Runnable
+    {
+    public:
+        virtual void run() throw()
+        {
+            while(!m_stopping)
+            {
+                try
+                {
+                    boost::system::error_code ec;
+                    m_ioService.run(ec);
+                    
+                    if( ec )
+                    {
+                        std::cout << "ASIO Error: " << ec << std::endl;
+                    }
+                }
+                catch(std::exception& _ex)
+                {
+                    std::cout << "Exception in ASIO loop: " << _ex.what() << std::endl;
+                }
+                catch(...)
+                {
+                    std::cout << "Unknown exception in ASIO loop" << std::endl;
+                }
+            }
+        }
+
+        virtual void stop()
+        {
+            m_stopping = true;
+        }
+
+        Runnable(boost::asio::io_service& _ioService) 
+            : m_ioService(_ioService), m_stopping(false) {}
+        
+        boost::asio::io_service& m_ioService;
+        volatile bool m_stopping;
+    };
+
+    m_pWork = new boost::asio::io_service::work(m_ioService);
+
+    // Reserve the correct amount of space.
+    m_threads.reserve(m_threadCount);
+
+    // Start some threads that will execute m_ioService.run()
+    for(int x = 0; x < m_threadCount; x++)
+    {
+        Zen::Threading::I_Thread* pThread = Zen::Threading::ThreadFactory::create(new Runnable(m_ioService));
+        m_threads.push_back(pThread);
+        pThread->start();
+    }
+
+    m_threadsStarted = true;
+
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+void
+UserDatagramProtocolService::handleEstablish(const boost::system::error_code& _error, std::size_t _bytesTransferred)
+{
+    if (!_error)
+    {
+        pSession_type pSession;
+        SessionMap_type::iterator iter = m_sessionMap.find(m_remoteEndpoint);
+        if (iter == m_sessionMap.end())
+        {
+            // The new session is now established, so start it.
+            pEndpoint_type pEndpoint(
+                new UDP::Endpoint(
+                    getSelfReference(),
+                    m_remoteEndpoint
+                ),
+                boost::bind(
+                    &UserDatagramProtocolService::destroyEndpoint,
+                    this,
+                    _1
+                )
+            );
+
+            // This endpoint is not local since it was newly established.
+            pEndpoint->setIsLocal(false);
+
+            m_pNewSession->start(pEndpoint);
+
+            m_pNewSession->handleMessageBuffer(m_readMessage);
+
+            // Now, create another session and do an async establish on it.
+            createSession();
+        }
+        else
+        {
+            iter->second->handleMessageBuffer(m_readMessage);
+        }
+
+        // And asynchronously accept the new connection/listen for new messages.
+        asyncEstablish();
+    }
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+void
+UserDatagramProtocolService::createSession()
+{
+    boost::shared_ptr<UDP::Session> pSession(new UDP::Session(m_ioService, *this, m_socket));
+    m_pNewSession.swap(pSession);
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+void
+UserDatagramProtocolService::asyncEstablish()
+{
+    m_socket.async_receive_from(
+        boost::asio::buffer(m_readMessage.getData(), UDP::MessageBuffer::HEADER_LENGTH),
+        m_remoteEndpoint,
+        boost::bind(
+            &UserDatagramProtocolService::handleEstablish,
+            this,
+            boost::asio::placeholders::error,
+            boost::asio::placeholders::bytes_transferred
+        )
+    );
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
@@ -260,194 +380,166 @@ UserDatagramProtocolService::getApplicationServer()
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 void
-UserDatagramProtocolService::receiveFrom()
-{
-    // TODO Pool MessageBuffer?
-    boost::shared_ptr<MessageBuffer> pBuffer(new MessageBuffer(*this));
-    m_pSocket->async_receive_from
-    (
-    boost::asio::buffer(pBuffer->getData(), MessageBuffer::MAX_LENGTH),
-        pBuffer->getEndpoint(),
-        boost::bind
-        (
-            &MessageBuffer::handleReceiveFrom, pBuffer,
-            boost::asio::placeholders::error,
-            boost::asio::placeholders::bytes_transferred
-        )
-    );
-}
-
-//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-void
 UserDatagramProtocolService::sendTo(pMessage_type _pMessage,
                                     pEndpoint_type _pEndpoint)
 {
-    // Can't use async send since we need a buffer.
-    // TODO Use UDP::MessageBuffer?
-    // See http://www.indiezen.org/wiki/irclogs/2009/03/06/#UTC2009-03-06T16:26:56
+    // TODO Push onto a queue and handle in a worker thread?
+    {
+        typedef Memory::managed_ptr<UDP::Endpoint> pConcreteEndpoint_type;
+        pConcreteEndpoint_type pEndpoint(_pEndpoint.as<pConcreteEndpoint_type>());
 
-    SendTask* pTask = dynamic_cast<SendTask*>(&m_sendTaskPool.take());
-    pTask->initialize(this, _pMessage, _pEndpoint);
+        pSession_type pSession;
 
-    m_pThreadPool->pushRequest(pTask);
+        // Find or create the connection.
+        {
+            Threading::CriticalSection lock(m_pSessionsGuard);
+
+            // Find the connection associated with this endpoint.
+            SessionMap_type::iterator iter = m_sessionMap.find(pEndpoint->getEndpoint());
+
+            if (iter == m_sessionMap.end())
+            {
+                if (m_isServer)
+                {
+                    // TODO Error?
+                    return;
+                }
+
+                pSession = m_pNewSession;
+
+                createSession();
+
+                // Assume this is an outbound endpoint.
+                pEndpoint->setIsLocal(false);
+
+                m_sessionMap[pEndpoint->getEndpoint()] = pSession;
+                pSession->establish(_pEndpoint);
+            }
+            else
+            {
+                pSession = iter->second;
+            }
+        }
+
+        // TODO Create a task to handle this asynchronously?
+        std::stringstream buffer;
+
+        boost::archive::polymorphic_binary_oarchive archive(buffer,
+                                                            boost::archive::no_header |
+                                                            boost::archive::no_tracking);
+
+        // Serialize the header
+        // TODO Handle the version correctly
+        _pMessage->getMessageHeader()->serialize(archive, 0);
+
+        // Serialize the rest of the message
+        _pMessage->serialize(archive, 0);
+
+        pSession->write(buffer.str().c_str(), (boost::uint32_t)buffer.str().length());
+
+    }
+
+    // Make sure the threads have been started.
+    startThreads();
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 void
 UserDatagramProtocolService::disconnect(pEndpoint_type _pEndpoint)
 {
-    /// TODO Ignore?
+    typedef Memory::managed_ptr<UDP::Endpoint> pConcreteEndpoint_type;
+    pConcreteEndpoint_type pEndpoint(_pEndpoint.as<pConcreteEndpoint_type>());
+
+    if (pEndpoint.isValid())
+    {
+        Threading::CriticalSection guard(m_pSessionsGuard);
+
+        SessionMap_type::iterator iter = m_sessionMap.find(pEndpoint->getEndpoint());
+        if (iter != m_sessionMap.end())
+        {
+            iter->second->terminate();
+        }
+    }
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 Event::I_Event&
 UserDatagramProtocolService::getConnectedEvent()
 {
-    throw Utility::runtime_exception("UserDatagramProtocolService::getConnectedEvent(): Error, not implemented.");
+    return getApplicationServer().getEventService()->getEvent("UserDatagramProtocolService/connectedEvent");
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 Event::I_Event&
 UserDatagramProtocolService::getDisconnectedEvent()
 {
-    throw Utility::runtime_exception("UserDatagramProtocolService::getConnectedEvent(): Error, not implemented.");
+    return getApplicationServer().getEventService()->getEvent("UserDatagramProtocolService/disconnectedEvent");
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 void
-UserDatagramProtocolService::handleSendTo(pMessage_type _pMessage,
-                                          pEndpoint_type _pEndpoint)
+UserDatagramProtocolService::onEstablishSession(pSession_type _pSession)
 {
-    std::stringstream buffer;
+    Zen::Threading::CriticalSection lock(m_pSessionsGuard);
 
-    boost::archive::polymorphic_binary_oarchive archive(buffer,
+    typedef Zen::Memory::managed_ptr<UDP::Endpoint>     pConcreteEndpoint_type;
+
+    m_sessionMap[_pSession->getPeer().as<pConcreteEndpoint_type>()->getEndpoint()] = _pSession;
+
+    // Dispatch this event.
+    getConnectedEvent().fireEvent(_pSession->getPeer());
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+void
+UserDatagramProtocolService::onTerminateSession(pSession_type _pSession)
+{
+    Zen::Threading::CriticalSection lock(m_pSessionsGuard);
+
+    typedef Zen::Memory::managed_ptr<UDP::Endpoint>     pConcreteEndpoint_type;
+
+    m_sessionMap.erase(_pSession->getPeer().as<pConcreteEndpoint_type>()->getEndpoint());
+
+    // Dispatch this event.
+    getDisconnectedEvent().fireEvent(_pSession->getPeer());
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+void
+UserDatagramProtocolService::onHandleMessage(pSession_type _pSession, UDP::MessageBuffer& _message)
+{
+    boost::iostreams::stream<boost::iostreams::array> 
+        stream(_message.getBody(), _message.getBodyLength());
+
+    boost::archive::polymorphic_binary_iarchive archive(stream, 
                                                         boost::archive::no_header |
                                                         boost::archive::no_tracking);
 
-    // Handle the header
-    // TODO Handle the version correctly
-    _pMessage->getMessageHeader()->serialize(archive, 0);
 
-    // Serialize the rest of the message
-    // TODO Handle the version correctly
-    _pMessage->serialize(archive, 0);
+    
+    // Deserialize the header
+    I_Message::pMessageHeader_type pHeader = getApplicationServer().getMessageRegistry()->getMessageHeader(archive);
 
-    const int bodyLength = buffer.str().length();
+    // Construct the appropriate message
+    // The way we're doing it now, we don't know which one of these to call
+    // create() or createResponse().
+    // If we put that detail in the header somehow, then we can either call
+    // the correct method... *or* we can let the create() method figure it out.
+    pMessage_type pMessage = pHeader->getMessageType()->getMessageFactory()
+        ->create(
+            pHeader, 
+            _pSession->getPeer(), 
+            pEndpoint_type()
+        );
 
-    if (bodyLength <= MessageBuffer::MAX_BODY_LENGTH)
-    {
-        MessageBuffer msg(*this);
-        msg.setBodyLength(bodyLength);
-        msg.encodeHeader();
+    // Deserialize the message
+    pMessage->serialize(pHeader, archive, 0);
 
-        memcpy(msg.getBody(), buffer.str().c_str(), bodyLength);
-
-        m_pSocket->send_to(boost::asio::buffer(msg.getData(), bodyLength + MessageBuffer::HEADER_LENGTH),
-                           dynamic_cast<Endpoint*>(_pEndpoint.get())->getEndpoint());
-    }
-    else
-    {
-        std::cout << "Error: Message too large while sending" << std::endl;
-    }
+    // Send the message to the application server
+    getApplicationServer().handleMessage(pMessage);
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-void
-UserDatagramProtocolService::handleReceiveFrom(boost::shared_ptr<MessageBuffer> _pMessageBuffer,
-                                               const boost::system::error_code& _error,
-                                               size_t _bytesReceived)
-{
-    if( !_error && _bytesReceived > 0 && _pMessageBuffer->decodeHeader())
-    {
-        std::stringbuf buffer;
-        buffer.sputn(_pMessageBuffer->getBody(), _pMessageBuffer->getBodyLength());
-        buffer.pubseekpos(0);
-
-        std::stringstream stream;
-        stream.str(buffer.str());
-
-        /// @todo Make sure _bytesReceived isn't too terribly big,
-        /// but since this is UDP, does it matter?
-
-        boost::archive::polymorphic_binary_iarchive archive(stream,
-                                                            boost::archive::no_header |
-                                                            boost::archive::no_tracking);
-
-        pMessageHeader_type pMessageHeader = m_appServer.getMessageRegistry()->getMessageHeader(archive);
-        boost::asio::ip::address address = _pMessageBuffer->getEndpoint().address();
-        pMessage_type pMessage = pMessageHeader->getMessageType()->getMessageFactory()
-            ->create(
-                pMessageHeader,
-                pEndpoint_type(
-                    new Endpoint(
-                        getSelfReference(),
-                        _pMessageBuffer->getEndpoint(),
-                        createAddress(address)
-                    ),
-                    boost::bind(&UserDatagramProtocolService::destroyEndpoint, this, _1)
-                ),
-                pEndpoint_type()
-            );
-
-        // TODO Handle version correctly
-        pMessage->serialize(pMessageHeader, archive, 0);
-
-        getApplicationServer().handleMessage(pMessage);
-
-        // Loop back around and receive some more data
-        receiveFrom();
-    }
-    else
-    {
-        if (_error)
-        {
-            std::cout << "Error: " << boost::system::system_error(_error).what() << std::endl;
-        }
-        else
-        {
-            std::cout << "Error: Message too large while receiving" << std::endl;
-        }
-        receiveFrom();
-    }
-}
-
-//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-UserDatagramProtocolService::pResourceLocation_type
-UserDatagramProtocolService::getLocation(const std::string& _locationName)
-{
-    return Zen::Enterprise::AppServer::I_ApplicationServerManager::getSingleton().createLocation(_locationName);
-}
-
-//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-UserDatagramProtocolService::pAddress_type
-UserDatagramProtocolService::createAddress(boost::asio::ip::address &_address)
-{
-    Address* pRawAddress = new Address(_address);
-
-    pAddress_type pAddress(pRawAddress,
-        boost::bind(&UserDatagramProtocolService::destroyAddress,this,_1));
-
-    return pAddress;
-}
-
-//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-void
-UserDatagramProtocolService::destroyAddress(wpAddress_type& _pAddress)
-{
-    Address* pAddress = dynamic_cast<Address*>(_pAddress.get());
-
-    if( pAddress != NULL )
-    {
-        delete pAddress;
-    }
-    else
-    {
-        throw Zen::Utility::runtime_exception("UserDatagramProtocolService::destroyAddress() : Invalid type.");
-    }
-}
-
-//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-}   // namespace UDP
 }   // namespace AppServer
 }   // namespace Enterprise
 }   // namespace Zen

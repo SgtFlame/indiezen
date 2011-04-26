@@ -1,8 +1,8 @@
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 // Zen Enterprise Framework
 //
-// Copyright (C) 2001 - 2009 Tony Richards
-// Copyright (C) 2008 - 2009 Matthew Alan Gray
+// Copyright (C) 2001 - 2011 Tony Richards
+// Copyright (C) 2008 - 2011 Matthew Alan Gray
 //
 //  This software is provided 'as-is', without any express or implied
 //  warranty.  In no event will the authors be held liable for any damages
@@ -26,56 +26,52 @@
 #ifndef ZEN_ENTERPRISE_APPSERVER_UDP_PROTOCOL_SERVICE_HPP_INCLUDED
 #define ZEN_ENTERPRISE_APPSERVER_UDP_PROTOCOL_SERVICE_HPP_INCLUDED
 
-#include "../UDP/I_UDPService.hpp"
-#include "UDP/SendTaskAllocator.hpp"
+#include "UDP/Session.hpp"
+#include "UDP/MessageBuffer.hpp"
 
 #include <Zen/Core/Memory/managed_ptr.hpp>
 #include <Zen/Core/Memory/managed_weak_ptr.hpp>
 #include <Zen/Core/Memory/managed_self_ref.hpp>
 
 #include <Zen/Core/Threading/I_Thread.hpp>
+#include <Zen/Core/Threading/I_Mutex.hpp>
+
+#include <Zen/Core/Event/I_Event.hpp>
 
 #include <Zen/Enterprise/AppServer/I_ProtocolService.hpp>
-#include <Zen/Enterprise/AppServer/I_ApplicationServer.hpp>
-#include <Zen/Enterprise/AppServer/I_ResourceLocation.hpp>
 
-#include <Zen/Enterprise/Networking/I_Endpoint.hpp>
-#include <Zen/Enterprise/Networking/I_Address.hpp>
-
+#include <boost/noncopyable.hpp>
+#include <boost/function.hpp>
 #include <boost/asio.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/serialization/access.hpp>
 
+#include <boost/shared_ptr.hpp>
+
+#include <map>
+#include <string>
 #include <vector>
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 namespace Zen {
-    namespace Event {
-        class I_Event;
-    }   // namespace Event
 namespace Enterprise {
 namespace AppServer {
-namespace UDP {
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 class MessageBuffer;
 
 class UserDatagramProtocolService
-:   public I_UDPService
+:   public I_ProtocolService
 ,   public Zen::Memory::managed_self_ref<Zen::Enterprise::AppServer::I_ProtocolService>
 {
     /// @name Types
     /// @{
 public:
-    typedef Zen::Memory::managed_ptr<Zen::Networking::I_Address>                            pAddress_type;
-    typedef Zen::Memory::managed_weak_ptr<Zen::Networking::I_Address>                       wpAddress_type;
+    typedef std::vector<Threading::I_Thread*>                                               Threads_type;
+    typedef Zen::Memory::managed_weak_ptr<Networking::I_Endpoint>                           wpEndpoint_type;
 
-    typedef Zen::Memory::managed_weak_ptr<Zen::Enterprise::AppServer::I_ProtocolService>    wpProtocolService_type;
-    typedef Zen::Memory::managed_weak_ptr<Zen::Networking::I_Endpoint>                      wpEndpoint_type;
-    typedef Zen::Memory::managed_ptr<Zen::Enterprise::AppServer::I_ResourceLocation>        pResourceLocation_type;
+    typedef boost::shared_ptr<UDP::Session>                                                 pSession_type;
+    typedef boost::asio::ip::udp::endpoint                                                  EndpointKey_type;
+    typedef std::map<EndpointKey_type, pSession_type>                                       SessionMap_type;
 
-    typedef std::vector< Zen::Threading::I_Thread* >                                        threadCollection_type;
-
-    enum { MAX_LENGTH = 4096 };
+    typedef boost::shared_ptr<boost::asio::ip::udp::endpoint>                               pUDPEndpoint_type;
     /// @}
 
     /// @name I_StartupShutdownParticipant implementation
@@ -92,7 +88,7 @@ public:
     /// @name I_ProtocolService implementation
     /// @{
 public:
-    virtual Zen::Enterprise::AppServer::I_ApplicationServer& getApplicationServer();
+    virtual I_ApplicationServer& getApplicationServer();
     virtual pEndpoint_type resolveEndpoint(const std::string& _address, const std::string& _port);
     virtual void sendTo(pMessage_type _pMessage, pEndpoint_type _pEndpoint);
     virtual void disconnect(pEndpoint_type _pEndpoint);
@@ -100,32 +96,31 @@ public:
     virtual Event::I_Event& getDisconnectedEvent();
     /// @}
 
-    /// @name I_UDPService implementation
-    /// @{
-public:
-    /// @}
-
     /// @name UserDatagramProtocolService implementation
     /// @{
 public:
-    void receiveFrom();
-    void handleReceiveFrom(boost::shared_ptr<MessageBuffer>, const boost::system::error_code& _error, size_t _bytesReceived);
-    void destroyEndpoint(wpEndpoint_type& _pEndpoint);
-    void handleSendTo(pMessage_type _pMessage, pEndpoint_type _pEndpoint);
-    pAddress_type createAddress(boost::asio::ip::address& _address);
-    void destroyAddress(wpAddress_type& _pAddress);
-    /// @}
+    void startThreads();
 
-    /// @name Service locations
-    /// @{
-public:
-    static pResourceLocation_type getLocation(const std::string& _locationName);
+    void handleEstablish(const boost::system::error_code& _error, std::size_t _bytesTransferred);
+
+    void createSession();
+    void asyncEstablish();
+    void destroyEndpoint(wpEndpoint_type _pEndpoint);
+
+    /// This is called by the session after it has been established
+    void onEstablishSession(pSession_type _pSession);
+
+    /// This is called by the session after it has been terminated
+    void onTerminateSession(pSession_type _pSession);
+
+    void onHandleMessage(pSession_type _pSession, UDP::MessageBuffer& _message);
     /// @}
 
     /// @name 'Structors
     /// @{
-public:
-    explicit UserDatagramProtocolService(Zen::Enterprise::AppServer::I_ApplicationServer& _appServer);
+protected:
+    friend class ProtocolServiceFactory;
+    explicit UserDatagramProtocolService(I_ApplicationServer& _appServer);
     virtual ~UserDatagramProtocolService();
     /// @}
 
@@ -133,12 +128,16 @@ public:
     /// @{
 private:
     /// Reference to the parent application server to which this protocol service is bound
-    Zen::Enterprise::AppServer::I_ApplicationServer&    m_appServer;
+    I_ApplicationServer&                                m_appServer;
 
+    /// Configuration element for this protocol
     const Plugins::I_ConfigurationElement*              m_pConfig;
 
-    /// Primary async IO service
+    boost::asio::ip::udp::socket                        m_socket;
+
+    /// IO Service to perform asynchronous operations
     boost::asio::io_service                             m_ioService;
+    boost::asio::io_service::strand                     m_strand;
     boost::asio::io_service::work*                      m_pWork;
 
     /// Address on which to bind
@@ -148,21 +147,33 @@ private:
     std::string                                         m_port;
 
     /// Number of threads (defaults to 1)
-    const int                                           m_threadCount;
+    int                                                 m_threadCount;
+
+    /// True if this is a server that is listening
+    bool                                                m_isServer;
+
+    volatile bool                                       m_threadsStarted;
+
+    /// New session used for the next new UDP session
+    /// if this is a server side service.
+    /// This is a shared pointer instead of a managed pointer
+    /// because boost::bind<> handles shared_ptr correctly
+    boost::shared_ptr<UDP::Session>                     m_pNewSession;
 
     /// Collection of threads
-    threadCollection_type                               m_threads;
+    Threads_type                                        m_threads;
 
-    /// UDP Socket
-    boost::asio::ip::udp::socket*                       m_pSocket;
+    /// Endpoint to which this service is bound (if any)
+    boost::asio::ip::tcp::endpoint                      m_endpoint;
 
-    /// Primary App Server ThreadPool.  Use this for short running tasks.
-    Zen::Threading::ThreadPool*                         m_pThreadPool;
+    SessionMap_type                                     m_sessionMap;
 
-    /// Local Send TaskPool.
-    Zen::Threading::ThreadPool::TaskPool                m_sendTaskPool;
+    boost::asio::ip::udp::endpoint                      m_remoteEndpoint;
+    UDP::MessageBuffer                                  m_readMessage;
 
-    SendTaskAllocator                                   m_sendTaskAllocator;
+    /// Guard for m_sessionMap.
+    /// Also used as a guard for m_threads.
+    Threading::I_Mutex*                                 m_pSessionsGuard;
 
     pMessageRegistry_type                               m_pMessageRegistry;
     /// @}
@@ -170,7 +181,6 @@ private:
 };  // UserDatagramProtocolService class
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-}   // namespace UDP
 }   // namespace AppServer
 }   // namespace Enterprise
 }   // namespace Zen

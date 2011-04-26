@@ -1,7 +1,8 @@
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 // Zen Enterprise Framework
 //
-// Copyright (C) 2001 - 2009 Tony Richards
+// Copyright (C) 2001 - 2011 Tony Richards
+// Copyright (C) 2008 - 2011 Matthew Alan Gray
 //
 //  This software is provided 'as-is', without any express or implied
 //  warranty.  In no event will the authors be held liable for any damages
@@ -20,9 +21,9 @@
 //  3. This notice may not be removed or altered from any source distribution.
 //
 //  Tony Richards trichards@indiezen.com
+//  Matthew Alan Gray mgray@hatboystudios.com
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 #include "MessageBuffer.hpp"
-#include "../UserDatagramProtocolService.hpp"
 
 #include <climits>
 #include <cstddef>
@@ -32,8 +33,7 @@ namespace Enterprise {
 namespace AppServer {
 namespace UDP {
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-MessageBuffer::MessageBuffer(UserDatagramProtocolService& _protocolService)
-:   m_protocolService(_protocolService)
+MessageBuffer::MessageBuffer()
 {
 }
 
@@ -116,7 +116,7 @@ big_to_native(boost::uint32_t x)
 bool
 MessageBuffer::decodeHeader()
 {
-    m_bodyLength = big_to_native(m_bodyLength);
+    m_bodyLength = big_to_native(m_encodedBodyLength);
     if (m_bodyLength > MAX_BODY_LENGTH)
     {
         // TODO Error
@@ -130,21 +130,7 @@ MessageBuffer::decodeHeader()
 void
 MessageBuffer::encodeHeader()
 {
-    m_bodyLength = native_to_big(m_bodyLength);
-}
-
-//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-boost::asio::ip::udp::endpoint&
-MessageBuffer::getEndpoint()
-{
-    return m_senderEndpoint;
-}
-
-//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-void
-MessageBuffer::handleReceiveFrom(const boost::system::error_code& _error, size_t _bytesReceived)
-{
-    m_protocolService.handleReceiveFrom(shared_from_this(), _error, _bytesReceived);
+    m_encodedBodyLength = native_to_big(m_bodyLength);
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~

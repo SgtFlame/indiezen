@@ -1,7 +1,8 @@
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 // Zen Enterprise Framework
 //
-// Copyright (C) 2001 - 2009 Tony Richards
+// Copyright (C) 2001 - 2011 Tony Richards
+// Copyright (C) 2008 - 2011 Matthew Alan Gray
 //
 //  This software is provided 'as-is', without any express or implied
 //  warranty.  In no event will the authors be held liable for any damages
@@ -20,13 +21,13 @@
 //  3. This notice may not be removed or altered from any source distribution.
 //
 //  Tony Richards trichards@indiezen.com
+//  Matthew Alan Gray mgray@hatboystudios.com
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 #ifndef ZEN_ENTERPRISE_APPSERVER_UDP_MESSAGE_BUFFER_HPP_INCLUDED
 #define ZEN_ENTERPRISE_APPSERVER_UDP_MESSAGE_BUFFER_HPP_INCLUDED
 
-#include <boost/asio.hpp>
-#include <boost/enable_shared_from_this.hpp>
 #include <boost/cstdint.hpp> 
+#include <boost/noncopyable.hpp>
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 namespace Zen {
@@ -34,14 +35,12 @@ namespace Enterprise {
 namespace AppServer {
 namespace UDP {
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-class UserDatagramProtocolService;
 
 /// Message Buffer
 /// This message is used to store the message before it's decoded
 /// or after it's been encoded.
 class MessageBuffer
-:   public boost::enable_shared_from_this<MessageBuffer>
-,   private boost::noncopyable
+:   private boost::noncopyable
 {
 public:
     enum { HEADER_LENGTH = 4 };
@@ -69,20 +68,15 @@ public:
     /// (machine order to network order)
     void encodeHeader();
 
-    boost::asio::ip::udp::endpoint& getEndpoint();
-    void handleReceiveFrom(const boost::system::error_code& _error, size_t _bytesReceived);
-
 public:
-             MessageBuffer(UserDatagramProtocolService& _protocolService);
+             MessageBuffer();
     virtual ~MessageBuffer();
 
 private:
-    UserDatagramProtocolService&        m_protocolService;
-    boost::asio::ip::udp::endpoint      m_senderEndpoint;
-
+    boost::uint32_t                     m_bodyLength;
     union
     {
-        boost::uint32_t                 m_bodyLength;
+        boost::uint32_t                 m_encodedBodyLength;
         char                            m_data[HEADER_LENGTH + MAX_BODY_LENGTH];
     };
 

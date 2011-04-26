@@ -89,7 +89,7 @@ ProtocolServiceFactory::destroyHttp(wpProtocolService_type _pProtocolService)
 ProtocolServiceFactory::pProtocolService_type
 ProtocolServiceFactory::createUdp(I_ApplicationServer& _server)
 {
-    UDP::UserDatagramProtocolService* pRawService = new UDP::UserDatagramProtocolService(_server);
+    UserDatagramProtocolService* pRawService = new UserDatagramProtocolService(_server);
 
     pProtocolService_type pProtocolService(pRawService, destroyUdp);
 
@@ -104,8 +104,8 @@ ProtocolServiceFactory::createUdp(I_ApplicationServer& _server)
 void
 ProtocolServiceFactory::destroyUdp(wpProtocolService_type _pProtocolService)
 {
-    UDP::UserDatagramProtocolService* pRawService = 
-        dynamic_cast<UDP::UserDatagramProtocolService*>(_pProtocolService.get());
+    UserDatagramProtocolService* pRawService = 
+        dynamic_cast<UserDatagramProtocolService*>(_pProtocolService.get());
 
     if( pRawService != NULL )
     {
