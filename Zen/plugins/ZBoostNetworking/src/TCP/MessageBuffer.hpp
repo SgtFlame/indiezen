@@ -1,7 +1,8 @@
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 // Zen Enterprise Framework
 //
-// Copyright (C) 2001 - 2009 Tony Richards
+// Copyright (C) 2001 - 2011 Tony Richards
+// Copyright (C) 2008 - 2011 Matthew Alan Gray
 //
 //  This software is provided 'as-is', without any express or implied
 //  warranty.  In no event will the authors be held liable for any damages
@@ -20,11 +21,13 @@
 //  3. This notice may not be removed or altered from any source distribution.
 //
 //  Tony Richards trichards@indiezen.com
+//  Matthew Alan Gray mgray@hatboystudios.com
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 #ifndef ZEN_ENTERPRISE_APPSERVER_TCP_MESSAGE_HPP_INCLUDED
 #define ZEN_ENTERPRISE_APPSERVER_TCP_MESSAGE_HPP_INCLUDED
 
-#include <boost/cstdint.hpp> 
+#include <boost/cstdint.hpp>
+#include <boost/noncopyable.hpp>
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 namespace Zen {
@@ -38,6 +41,7 @@ namespace TCP {
 /// This message is used to store the message before it's decoded
 /// or after it's been encoded.
 class MessageBuffer
+:   private boost::noncopyable
 {
 public:
     enum { HEADER_LENGTH = 4 };

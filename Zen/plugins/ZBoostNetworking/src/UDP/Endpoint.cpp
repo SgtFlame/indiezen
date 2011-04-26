@@ -1,8 +1,8 @@
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 // Zen Enterprise Framework
 //
-// Copyright (C) 2001 - 2009 Tony Richards
-// Copyright (C) 2008 - 2009 Matthew Alan Gray
+// Copyright (C) 2001 - 2011 Tony Richards
+// Copyright (C) 2008 - 2011 Matthew Alan Gray
 //
 //  This software is provided 'as-is', without any express or implied
 //  warranty.  In no event will the authors be held liable for any damages
@@ -21,15 +21,18 @@
 //  3. This notice may not be removed or altered from any source distribution.
 //
 //  Tony Richards trichards@indiezen.com
-//  Matthew Alan Gray mgray@indiezen.org
+//  Matthew Alan Gray mgray@hatboystudios.com
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 #include <boost/asio.hpp>
 
 #include "Endpoint.hpp"
+#include "../UserDatagramProtocolService.hpp"
 
 #include <Zen/Core/Utility/runtime_exception.hpp>
 
 #include <Zen/Enterprise/Networking/I_Address.hpp>
+
+#include <Zen/Enterprise/AppServer/I_ProtocolService.hpp>
 
 #include <sstream>
 
@@ -40,8 +43,7 @@ namespace AppServer {
 namespace UDP {
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 Endpoint::Endpoint(wpProtocolService_type _pProtocolAdapter,
-                   const boost::asio::ip::udp::endpoint& _endpoint,
-                   pAddress_type _pAddress)
+                   const boost::asio::ip::udp::endpoint& _endpoint)
 :   m_pProtocolAdapter(_pProtocolAdapter)
 ,   m_endpoint(_endpoint)
 ,   m_isLocal(false)
@@ -49,11 +51,6 @@ Endpoint::Endpoint(wpProtocolService_type _pProtocolAdapter,
     std::stringstream endpointStream;
     endpointStream << _endpoint;
     m_endpointString = endpointStream.str();
-}
-
-//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-Endpoint::Endpoint()
-{
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~

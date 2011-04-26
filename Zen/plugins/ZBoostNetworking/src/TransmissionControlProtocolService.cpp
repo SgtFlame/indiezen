@@ -1,7 +1,8 @@
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 // Zen Enterprise Framework
 //
-// Copyright (C) 2001 - 2009 Tony Richards
+// Copyright (C) 2001 - 2011 Tony Richards
+// Copyright (C) 2008 - 2011 Matthew Alan Gray
 //
 //  This software is provided 'as-is', without any express or implied
 //  warranty.  In no event will the authors be held liable for any damages
@@ -20,6 +21,7 @@
 //  3. This notice may not be removed or altered from any source distribution.
 //
 //  Tony Richards trichards@indiezen.com
+//  Matthew Alan Gray mgray@hatboystudios.com
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 #ifndef NOMINMAX
 #define NOMINMAX
@@ -131,7 +133,10 @@ TransmissionControlProtocolService::resolveEndpoint(const std::string& _address,
     boost::asio::ip::tcp::resolver::query query(_address, _port);
     boost::asio::ip::tcp::endpoint endpoint = *resolver.resolve(query);
 
-    pEndpoint_type pEndpoint(new Endpoint(getSelfReference(), endpoint), boost::bind(&TransmissionControlProtocolService::destroyEndpoint, this, _1));
+    pEndpoint_type pEndpoint(
+        new Endpoint(getSelfReference(), endpoint), 
+        boost::bind(&TransmissionControlProtocolService::destroyEndpoint, this, _1)
+    );
 
     // Default to true.  Generally an endpoint is outbound when resolveEndpoint()
     // is called.  Since "listen()" is not a valid method (listen ports are 
@@ -469,6 +474,9 @@ TransmissionControlProtocolService::onConnected(pConnection_type _pConnection)
     typedef Memory::managed_ptr<Endpoint>   pConcreteEndpoint_type;
 
     m_connectionMap[_pConnection->getPeer().as<pConcreteEndpoint_type>()->getEndpoint()] = _pConnection;
+
+    // Dispatch this event.
+    getConnectedEvent().fireEvent(_pConnection->getPeer());
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~

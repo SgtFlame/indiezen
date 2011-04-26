@@ -1,8 +1,8 @@
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 // Zen Enterprise Framework
 //
-// Copyright (C) 2001 - 2009 Tony Richards
-// Copyright (C) 2008 - 2009 Matthew Alan Gray
+// Copyright (C) 2001 - 2011 Tony Richards
+// Copyright (C) 2008 - 2011 Matthew Alan Gray
 //
 //  This software is provided 'as-is', without any express or implied
 //  warranty.  In no event will the authors be held liable for any damages
@@ -21,7 +21,7 @@
 //  3. This notice may not be removed or altered from any source distribution.
 //
 //  Tony Richards trichards@indiezen.com
-//  Matthew Alan Gray mgray@indiezen.org
+//  Matthew Alan Gray mgray@hatboystudios.com
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 #ifndef ZEN_ENTERPRISE_APPSERVER_UDP_ENDPOINT_HPP_INCLUDED
 #define ZEN_ENTERPRISE_APPSERVER_UDP_ENDPOINT_HPP_INCLUDED
@@ -34,6 +34,7 @@
 namespace Zen {
 namespace Enterprise {
 namespace AppServer {
+    class UserDatagramProtocolService;
 namespace UDP {
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 
@@ -49,13 +50,9 @@ public:
     /// @{
 public:
     virtual wpProtocolService_type getProtocolAdapter() const;
-
     virtual const std::string& toString() const { return m_endpointString; }
-
     virtual const Zen::Networking::I_Address& getAddress() const;
-
     virtual void setIsLocal(bool _isLocal);
-
     virtual bool isLocal() const;
     /// @}
 
@@ -67,9 +64,10 @@ public:
 
     /// @name 'Structors
     /// @{
+protected:
+    friend class Zen::Enterprise::AppServer::UserDatagramProtocolService;
+    explicit Endpoint(wpProtocolService_type _pProtocolAdapter, const boost::asio::ip::udp::endpoint& _endpoint);
 public:
-             Endpoint();
-    explicit Endpoint(wpProtocolService_type _pProtocolAdapter, const boost::asio::ip::udp::endpoint& _endpoint, pAddress_type _pAddress);
     virtual ~Endpoint();
     /// @}
 

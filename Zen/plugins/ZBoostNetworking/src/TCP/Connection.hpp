@@ -1,7 +1,8 @@
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 // Zen Enterprise Framework
 //
-// Copyright (C) 2001 - 2009 Tony Richards
+// Copyright (C) 2001 - 2011 Tony Richards
+// Copyright (C) 2008 - 2011 Matthew Alan Gray
 //
 //  This software is provided 'as-is', without any express or implied
 //  warranty.  In no event will the authors be held liable for any damages
@@ -20,6 +21,7 @@
 //  3. This notice may not be removed or altered from any source distribution.
 //
 //  Tony Richards trichards@indiezen.com
+//  Matthew Alan Gray mgray@hatboystudios.com
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 #ifndef ZEN_ENTERPRISE_APPSERVER_TCP_CONNECTION_HPP_INCLUDED
 #define ZEN_ENTERPRISE_APPSERVER_TCP_CONNECTION_HPP_INCLUDED
@@ -41,8 +43,6 @@ namespace Zen {
     }   // namespace Networking
 namespace Enterprise {
 namespace AppServer {
-    class I_Request;
-    class I_Response;
     class TransmissionControlProtocolService;
 namespace TCP {
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
@@ -57,8 +57,6 @@ class Connection
     /// @{
 public:
     typedef Memory::managed_ptr<Networking::I_Endpoint>     pEndpoint_type;
-    typedef Memory::managed_ptr<I_Request>                  pRequest_type;
-    typedef Memory::managed_ptr<I_Response>                 pResponse_type;
     /// @}
 
 public:
