@@ -86,11 +86,10 @@ public:
 
     UserDatagramProtocolService& getProtocolService();
 
-protected:
-    void writeMore();
-
     /// Called after a message buffer is received by the protocol adapter.
     void handleMessageBuffer(MessageBuffer& _message);
+protected:
+    void writeMore();
 
     /// Called after a write has completed.
     void handleWrite(const boost::system::error_code& _errorCode);
@@ -101,10 +100,8 @@ protected:
 
     /// @name 'Structors
     /// @{
-protected:
-    friend class UserDatagramProtocolService;
-    explicit Session(boost::asio::io_service& _ioService, UserDatagramProtocolService& _protocolService, boost::asio::ip::udp::socket& _socket);
 public:
+    explicit Session(boost::asio::io_service& _ioService, UserDatagramProtocolService& _protocolService, boost::asio::ip::udp::socket& _socket);
     virtual ~Session();
     /// @}
 

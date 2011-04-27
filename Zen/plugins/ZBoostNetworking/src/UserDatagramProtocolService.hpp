@@ -133,12 +133,11 @@ private:
     /// Configuration element for this protocol
     const Plugins::I_ConfigurationElement*              m_pConfig;
 
-    boost::asio::ip::udp::socket                        m_socket;
-
     /// IO Service to perform asynchronous operations
     boost::asio::io_service                             m_ioService;
     boost::asio::io_service::strand                     m_strand;
     boost::asio::io_service::work*                      m_pWork;
+    boost::asio::ip::udp::socket*                       m_pSocket;
 
     /// Address on which to bind
     std::string                                         m_address;
