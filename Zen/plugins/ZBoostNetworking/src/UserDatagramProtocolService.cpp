@@ -70,9 +70,9 @@ UserDatagramProtocolService::UserDatagramProtocolService(Zen::Enterprise::AppSer
 :   m_appServer(_appServer)
 ,   m_pConfig(NULL)
 ,   m_ioService()
-,   m_socket(m_ioService)
-,   m_strand(m_ioService)
 ,   m_pWork(NULL)
+,   m_pSocket(NULL)
+,   m_strand(m_ioService)
 ,   m_address()
 ,   m_port()
 ,   m_threadCount(2)
@@ -84,6 +84,11 @@ UserDatagramProtocolService::UserDatagramProtocolService(Zen::Enterprise::AppSer
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 UserDatagramProtocolService::~UserDatagramProtocolService()
 {
+    if (m_pSocket != NULL)
+    {
+        delete m_pSocket;
+    }
+
     Zen::Threading::MutexFactory::destroy(m_pSessionsGuard);
 }
 
@@ -161,10 +166,14 @@ UserDatagramProtocolService::prepareToStart(Zen::Threading::ThreadPool& _threadP
     {
         // Resolve the address
         boost::asio::ip::udp::resolver resolver(m_ioService);
-        boost::asio::ip::udp::resolver::query query(boost::asio::ip::udp::v4(), m_port);
+        boost::asio::ip::udp::resolver::query query(m_address, m_port);
         boost::asio::ip::udp::endpoint endpoint = *resolver.resolve(query);
 
-        m_socket.bind(endpoint);
+        m_pSocket = new boost::asio::ip::udp::socket(m_ioService, endpoint);
+    }
+    else
+    {
+        m_pSocket = new boost::asio::ip::udp::socket(m_ioService);
     }
 
     // Create a new session
@@ -178,11 +187,7 @@ UserDatagramProtocolService::prepareToStart(Zen::Threading::ThreadPool& _threadP
 void
 UserDatagramProtocolService::start()
 {
-    if (m_isServer)
-    {
-        // Listen via UDP
-        asyncEstablish();        
-    }
+    asyncEstablish();        
 
     startThreads();
 }
@@ -308,7 +313,7 @@ UserDatagramProtocolService::startThreads()
 void
 UserDatagramProtocolService::handleEstablish(const boost::system::error_code& _error, std::size_t _bytesTransferred)
 {
-    if (!_error)
+    if (!_error && _bytesTransferred > 0 && m_readMessage.decodeHeader())
     {
         pSession_type pSession;
         SessionMap_type::iterator iter = m_sessionMap.find(m_remoteEndpoint);
@@ -341,17 +346,17 @@ UserDatagramProtocolService::handleEstablish(const boost::system::error_code& _e
         {
             iter->second->handleMessageBuffer(m_readMessage);
         }
-
-        // And asynchronously accept the new connection/listen for new messages.
-        asyncEstablish();
     }
+
+    // And asynchronously accept the new connection/listen for new messages.
+    asyncEstablish();
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 void
 UserDatagramProtocolService::createSession()
 {
-    boost::shared_ptr<UDP::Session> pSession(new UDP::Session(m_ioService, *this, m_socket));
+    boost::shared_ptr<UDP::Session> pSession(new UDP::Session(m_ioService, *this, *m_pSocket));
     m_pNewSession.swap(pSession);
 }
 
@@ -359,8 +364,8 @@ UserDatagramProtocolService::createSession()
 void
 UserDatagramProtocolService::asyncEstablish()
 {
-    m_socket.async_receive_from(
-        boost::asio::buffer(m_readMessage.getData(), UDP::MessageBuffer::HEADER_LENGTH),
+    m_pSocket->async_receive_from(
+        boost::asio::buffer(m_readMessage.getData(), UDP::MessageBuffer::MAX_LENGTH),
         m_remoteEndpoint,
         boost::bind(
             &UserDatagramProtocolService::handleEstablish,
