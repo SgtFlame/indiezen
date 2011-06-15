@@ -40,7 +40,7 @@ public:
     {
         std::stringstream query;
         query << _queryString;
-        query << m_fieldName << "=\'" << m_pValue->getStringValue() << "\'";
+        query << m_fieldName << "=" << m_pValue->getDBString();
         _queryString = query.str();
     }
     /// @}
@@ -58,7 +58,7 @@ public:
     /// @{
 protected:
     friend class Filter;
-    ScalarConstraint(const std::string _fieldName, boost::any& _value)
+    ScalarConstraint(const std::string& _fieldName, boost::any& _value)
     :   m_fieldName(_fieldName)
     ,   m_pValue(Zen::Enterprise::DataModel::I_DataElement::create())
     {
@@ -76,6 +76,67 @@ private:
     /// @}
 
 };  // class ScalarConstraint
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+class ExclusionConstraint
+:   public I_Filter::I_ExclusionConstraint
+{
+    /// @name Types
+    /// @{
+public:
+    /// @}
+
+    /// @name I_Constraint implementation
+    /// @{
+public:
+    virtual const std::string& getFieldName() const
+    {
+        return m_fieldName;
+    }
+
+    virtual void appendQuery(std::string& _queryString) const
+    {
+        std::stringstream query;
+        query << _queryString;
+        query << m_fieldName << "<>" << m_pValue->getDBString();
+        _queryString = query.str();
+    }
+    /// @}
+
+    /// @name I_ScalarConstraint implementation
+    /// @{
+public:
+    virtual ElementReference_type getValue() const
+    {
+        return *m_pValue.get();
+    }
+    /// @}
+
+    /// @name I_ExclusionConstraint
+    /// @{
+public:
+    /// @}
+
+    /// @name 'Structors
+    /// @{
+protected:
+    friend class Filter;
+    ExclusionConstraint(const std::string& _fieldName, boost::any& _value)
+    :   m_fieldName(_fieldName)
+    ,   m_pValue(Zen::Enterprise::DataModel::I_DataElement::create())
+    {
+        m_pValue->setAnyValue(_value);
+    }
+    /// @}
+
+    /// @name Member Variables
+    /// @{
+private:
+    const std::string   m_fieldName;
+    pElement_type       m_pValue;
+    /// @}
+
+};  // class ExclusionConstraint
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 Filter::Filter()
@@ -103,6 +164,19 @@ Filter::addScalarConstraint(const std::string& _field, boost::any& _value)
     if (iter == m_constraints.end())
     {
         m_constraints[_field] = new ScalarConstraint(_field, _value);
+    }
+
+    /// TODO Throw exception?
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+void
+Filter::addExclusionConstraint(const std::string& _field, boost::any& _value)
+{
+    ConstraintsMap_type::iterator iter = m_constraints.find(_field);
+    if (iter == m_constraints.end())
+    {
+        m_constraints[_field] = new ExclusionConstraint(_field, _value);
     }
 
     /// TODO Throw exception?

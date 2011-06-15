@@ -65,6 +65,7 @@ public:
     virtual void setDateTimeValue(const boost::posix_time::ptime& _value);
     virtual I_DataElement& operator=(const boost::posix_time::ptime& _value);
     virtual operator boost::posix_time::ptime();
+    virtual bool getBoolValue() const;
     virtual std::string getDBString() const;
     /// @}
 

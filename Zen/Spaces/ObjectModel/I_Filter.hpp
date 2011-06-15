@@ -52,6 +52,9 @@ public:
     /// Add scalar constraint.
     virtual void addScalarConstraint(const std::string& _field, boost::any& _value) = 0;
 
+    /// Add exclusion constraint.
+    virtual void addExclusionConstraint(const std::string& _field, boost::any& _value) = 0;
+
     /// Get the constraints represented by this filter via a visitor pattern.
     virtual void getConstraints(I_ConstraintVisitor& _visitor) const = 0;
     /// @}
@@ -116,6 +119,28 @@ public:
         /// @}
 
     };  // interface I_ScalarConstraint
+    //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+    class I_ExclusionConstraint
+    :   public I_ScalarConstraint
+    {
+        /// @name Types
+        /// @{
+    public:
+        /// @}
+
+        /// @name I_ExclusionConstraint interface.
+        /// @{
+    public:
+        /// @}
+
+        /// @name 'Structors
+        /// @{
+    public:
+                 I_ExclusionConstraint();
+        virtual ~I_ExclusionConstraint();
+        /// @}
+
+    };  // interface I_ExclusionConstraint
     //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
     struct I_ConstraintVisitor
     {

@@ -103,6 +103,9 @@ private:
     /// Application configuration path
     std::string                 m_configPath;
 
+    /// Output log filename
+    std::string                 m_logFile;
+
     /// Script language plugin to load
     std::string                 m_scriptLanguage;
 

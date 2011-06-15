@@ -1,7 +1,8 @@
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 // Zen Enterprise Framework
 //
-// Copyright (C) 2001 - 2009 Tony Richards
+// Copyright (C) 2001 - 2011 Tony Richards
+// Copyright (C) 2008 - 2011 Matthew Alan Gray
 //
 //  This software is provided 'as-is', without any express or implied
 //  warranty.  In no event will the authors be held liable for any damages
@@ -20,6 +21,7 @@
 //  3. This notice may not be removed or altered from any source distribution.
 //
 //  Tony Richards trichards@indiezen.com
+//	Matthew Alan Gray mgray@hatboystudios.com
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 #ifndef ZEN_DATAMODEL_I_DATA_ELEMENT_HPP_INCLUDED
 #define ZEN_DATAMODEL_I_DATA_ELEMENT_HPP_INCLUDED
@@ -58,6 +60,7 @@ public:
         REAL,
         INTEGER,
         DATETIME,
+        BOOL,
         UNKNOWN
     };
 
@@ -106,6 +109,9 @@ public:
     virtual void setDateTimeValue(const boost::posix_time::ptime& _value) = 0;
     virtual I_DataElement& operator=(const boost::posix_time::ptime& _value) = 0;
     virtual operator boost::posix_time::ptime() = 0;
+
+    /// @return the data element value as a boolean
+    virtual bool getBoolValue() const = 0;
 
     /// @return the database specific string
     virtual std::string getDBString() const = 0;

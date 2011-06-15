@@ -64,7 +64,8 @@ PluginManager::~PluginManager()
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 boost::shared_ptr<I_Application>
-PluginManager::installApplication(const boost::filesystem::path& _configFile)
+PluginManager::installApplication(const boost::filesystem::path& _configFile,
+                                  const boost::filesystem::path& _logFile)
 {
     m_pApplication.reset();
 
@@ -72,7 +73,7 @@ PluginManager::installApplication(const boost::filesystem::path& _configFile)
     // TODO Don't hardcode log name and params.
     Utility::I_LogManager::pLogService_type pLogService = 
         Utility::I_LogManager::getSingleton().create("zenLogService");
-    pLogService->createLog("Zen.log");
+    pLogService->createLog(_logFile.string());
 
     // Need the raw pointer; this is safe since this line and the next won't throw
     // an exception.

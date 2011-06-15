@@ -71,6 +71,7 @@ Container::init(int _argc, const char* _argv[])
         ("config,c", po::value<std::string>(&m_configPath)->default_value("config.xml"), "Configuration XML file")
         ("lang,l", po::value<std::string>(&m_scriptLanguage)->default_value("lua"), "Script language extension")
         ("script,s", po::value<std::string>(&m_defaultScript)->default_value("initServer.py"), "Boot script")
+        ("log-file", po::value<std::string>(&m_logFile)->default_value("Zen.log"), "Output log filename")
         //("interactive,i", po::value<bool>(&m_bRunInteractive)->default_value(false), "Run interactively")
     ;
 
@@ -103,7 +104,15 @@ Container::init(int _argc, const char* _argv[])
         (
             boost::filesystem::path(m_configPath, boost::filesystem::native)
         ).normalize();
-    Plugins::I_PluginManager::app_ptr_type pApp = Plugins::I_PluginManager::getSingleton().installApplication(configPath);
+
+    boost::filesystem::path logPath = boost::filesystem::system_complete
+        (
+            boost::filesystem::path(m_logFile)
+        ).normalize();
+
+    Plugins::I_PluginManager::app_ptr_type pApp = Plugins::I_PluginManager::getSingleton().installApplication(configPath, logPath);
+
+    Zen::Utility::log_stream& logStream(pApp->getLogStream());
 
     I_ApplicationServerManager& manager =
         I_ApplicationServerManager::getSingleton();

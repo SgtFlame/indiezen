@@ -175,6 +175,13 @@ DataElement::operator boost::posix_time::ptime()
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+bool
+DataElement::getBoolValue() const
+{
+	return m_pElement->getBoolValue();
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 std::string
 DataElement::getDBString() const
 {

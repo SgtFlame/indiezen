@@ -94,6 +94,28 @@ public:
 };  // class RealDataConverter
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+class BoolDataConverter
+:	public DataConverter
+{
+public:
+	virtual const std::type_info& getTypeInfo()
+	{
+		return typeid(bool);
+	}
+
+	virtual boost::any getAnyValue(const std::string& _value)
+	{
+		if (_value == "")
+		{
+			return boost::any();
+		}
+
+		return _value == "t" ? true : false;
+		//return boost::any(boost::lexical_cast<bool, std::string>(_value));
+	}
+};	// class BoolDataConverter
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 class TimestampDataConverter
 :   public DataConverter
 {
@@ -139,6 +161,7 @@ public:
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 const DatabaseTypes::ConversionMap_type DatabaseTypes::sm_dataConversionMap = boost::assign::map_list_of
+	(DatabaseTypes::BOOLOID, boost::shared_ptr<DataConverter>(new BoolDataConverter))
     (DatabaseTypes::INT8OID, boost::shared_ptr<DataConverter>(new IntegerDataConverter))
     (DatabaseTypes::INT2OID, boost::shared_ptr<DataConverter>(new IntegerDataConverter))
     (DatabaseTypes::INT4OID, boost::shared_ptr<DataConverter>(new IntegerDataConverter))

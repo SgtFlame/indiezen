@@ -40,6 +40,9 @@
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 namespace Zen {
+    namespace Threading {
+        class I_Condition;
+    }   // namespace Threading
     namespace Database {
         class I_DatabaseService;
         class I_DatabaseConnection;
@@ -208,6 +211,8 @@ private:
 
     /// Collection of installed application services
     ApplicationServices_type    m_applicationServices;
+
+    Threading::I_Condition*     m_pStartCondition;
 
     pMessageRegistry_type       m_pMessageRegistry_type;
 

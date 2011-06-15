@@ -80,6 +80,16 @@ I_Filter::I_ScalarConstraint::~I_ScalarConstraint()
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+I_Filter::I_ExclusionConstraint::I_ExclusionConstraint()
+{
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+I_Filter::I_ExclusionConstraint::~I_ExclusionConstraint()
+{
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 }   // namespace ObjectModel
 }   // namespace Spaces
 }   // namespace Zen
