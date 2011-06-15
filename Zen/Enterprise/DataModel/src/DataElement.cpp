@@ -55,6 +55,7 @@ static const TypeMap_type sm_typeMap = boost::assign::map_list_of
     (std::string(typeid(boost::int64_t).name()), DataElement::INTEGER)
     (std::string(typeid(float).name()), DataElement::REAL)
     (std::string(typeid(double).name()), DataElement::REAL)
+    (std::string(typeid(bool).name()), DataElement::BOOL)
     (std::string(typeid(boost::posix_time::ptime).name()), DataElement::DATETIME)
     (std::string(typeid(std::string).name()), DataElement::STRING);
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
@@ -186,6 +187,10 @@ DataElement::getStringValue() const
             /// TODO Implement
             return value.str();
         }
+        else if (m_value.type() == typeid(bool))
+        {
+        	return boost::any_cast<bool>(m_value) ? "true" : "false";
+        }
         // No break here.  Error if type wasn't found.
     default:
         // TODO Implement type coercion
@@ -310,6 +315,18 @@ DataElement::operator=(const boost::posix_time::ptime& _value)
 DataElement::operator boost::posix_time::ptime()
 {
     return getDateTimeValue();
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+bool
+DataElement::getBoolValue() const
+{
+    if (m_type == BOOL)
+    {
+        return boost::any_cast<bool>(m_value);
+    }
+
+    throw Utility::runtime_exception("DataElement::getBoolValue(): Error, not implemented");
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~

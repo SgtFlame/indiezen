@@ -62,7 +62,7 @@ public:
     /// @note The return value is a shared_ptr.  
     ///       See http://www.indiezen.org/wiki/wiki/BestPractices for more information
     ///       on using smart pointers.
-    virtual app_ptr_type installApplication(const boost::filesystem::path& _configFile) = 0;
+    virtual app_ptr_type installApplication(const boost::filesystem::path& _configFile, const boost::filesystem::path& _logFile = boost::filesystem::path("Zen.log")) = 0;
 
     /// Get the installed application
     /// If an application is not installed, a NULL smart pointer

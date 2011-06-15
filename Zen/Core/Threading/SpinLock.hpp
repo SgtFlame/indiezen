@@ -46,6 +46,11 @@
 #if  !defined(SPINLOCK_IS_WRAPPER)
 
     #if   defined(_MSC_VER)
+        // Have to revert to SPINLOCK_IS_WRAPPER in x64 since inline __asm is not supported.
+        #if defined(_WIN64)
+            #define SPINLOCK_IS_WRAPPER
+        #endif
+
         // "SpinLock" will use true hardware-based spin locks.
         #if !defined(HOST_CPU_X86) && !defined(HOST_CPU_X86_64)
             #ifndef WIN32_LEAN_AND_MEAN

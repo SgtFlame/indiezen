@@ -59,7 +59,7 @@ public:
     /// @name I_PluginManager implementation
     /// @{
 public:
-    virtual app_ptr_type installApplication(const boost::filesystem::path& _configFile);
+    virtual app_ptr_type installApplication(const boost::filesystem::path& _configFile, const boost::filesystem::path& _logFile);
     virtual app_ptr_type getApplication();
     virtual void setRootPath(const char _ch, const boost::filesystem::path& _rootPath);
     virtual void setPluginPath(const boost::filesystem::path& _pluginPath);

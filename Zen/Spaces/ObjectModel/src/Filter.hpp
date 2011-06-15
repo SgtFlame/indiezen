@@ -40,6 +40,7 @@ public:
     /// @{
 public:
     virtual void addScalarConstraint(const std::string& _field, boost::any& _value);
+    virtual void addExclusionConstraint(const std::string& _field, boost::any& _value);
     virtual void getConstraints(I_ConstraintVisitor& _visitor) const;
     /// @}
 

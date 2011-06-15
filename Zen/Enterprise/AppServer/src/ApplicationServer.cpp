@@ -45,7 +45,9 @@
 #include <Zen/Core/Utility/runtime_exception.hpp>
 
 #include <Zen/Core/Threading/MutexFactory.hpp>
+#include <Zen/Core/Threading/ConditionFactory.hpp>
 #include <Zen/Core/Threading/I_Mutex.hpp>
+#include <Zen/Core/Threading/I_Condition.hpp>
 #include <Zen/Core/Threading/I_Thread.hpp>
 #include <Zen/Core/Threading/CriticalSection.hpp>
 
@@ -85,6 +87,7 @@ ApplicationServer::ApplicationServer()
 ,   m_shutdownQueue(1, NULL, true, false)
 ,   m_pProtocolGuard(Threading::MutexFactory::create())
 ,   m_pApplicationGuard(Threading::MutexFactory::create())
+,   m_pStartCondition(Threading::ConditionFactory::create())
 ,   m_pMessageRegistry_type(new NumericTypeMessageRegistry(), &destroy)
 ,   m_databaseConnectionsMap()
 {
@@ -93,6 +96,9 @@ ApplicationServer::ApplicationServer()
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 ApplicationServer::~ApplicationServer()
 {
+    Threading::MutexFactory::destroy(m_pProtocolGuard);
+    Threading::MutexFactory::destroy(m_pApplicationGuard);
+    Threading::ConditionFactory::destroy(m_pStartCondition);
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
@@ -157,11 +163,8 @@ ApplicationServer::start()
         Zen::Threading::ThreadPool&     m_installQueue;
     };
 
-    // Create an I_Condition to all the caller to know when all the applications have been installed
-    Zen::Threading::I_Condition* pCondition = Zen::Threading::ConditionFactory::create(false);
-
     // Create the installation complete task and pass the condition into it.
-    InstallationCompleteTask* pTask = new InstallationCompleteTask(*pCondition, m_installQueue);
+    InstallationCompleteTask* pTask = new InstallationCompleteTask(*m_pStartCondition, m_installQueue);
 
     // Push the task onto the end of the queue
     m_installQueue.pushRequest(pTask);
@@ -170,7 +173,7 @@ ApplicationServer::start()
     // installed.
     m_installQueue.start();
 
-    return pCondition;
+    return m_pStartCondition;
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
@@ -684,6 +687,8 @@ ApplicationServer::configureApplication(pApplicationService_type _pApplicationSe
 ApplicationServer::pApplicationService_type
 ApplicationServer::getApplication(pResourceLocation_type _pServiceLocation) const
 {
+    m_pStartCondition->requireCondition();
+
     Threading::CriticalSection lock(m_pApplicationGuard);
 
     ApplicationServices_type::const_iterator iter = m_applicationServices.find(_pServiceLocation);

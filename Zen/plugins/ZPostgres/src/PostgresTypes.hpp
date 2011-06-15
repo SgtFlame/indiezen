@@ -49,6 +49,7 @@ class DatabaseTypes
 public:
     enum dbTypes_enum
     {
+    	BOOLOID = 16,
         INT8OID = 20,
         INT2OID = 21,
         INT4OID = 23,
