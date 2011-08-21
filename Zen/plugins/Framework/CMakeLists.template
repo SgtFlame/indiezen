@@ -1,0 +1,56 @@
+cmake_minimum_required (VERSION 2.6)
+
+project(Framework)
+set ( PROJECT_PREFIX "plugins/Framework" )
+
+if ( NOT INDIEZEN_PARENT)
+	find_path ( INDIEZEN_PARENT Zen .. ../.. ../../.. ENV )
+endif (NOT INDIEZEN_PARENT)
+
+set(CMAKE_MODULE_PATH "${INDIEZEN_PARENT}/Zen/build/CMake/Modules" ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_MODULE_PATH})
+list (REMOVE_DUPLICATES CMAKE_MODULE_PATH)
+
+Find_Package(IndieZen REQUIRED)
+
+<%HeaderInstallDirectives%>
+
+if (NOT MSVC)
+install ( FILES 
+    plugin.xml
+    DESTINATION
+    ${CMAKE_INSTALL_PREFIX}/../../etc/Zen/${PROJECT_PREFIX}/
+)
+
+install ( FILES
+    schema/physics.exsd
+    schema/sky.exsd
+    schema/gameclient.exsd
+    schema/application.exsd
+    schema/database.exsd
+    schema/terrain.exsd
+    schema/water.exsd
+    schema/console.exsd
+    schema/commandlineparser.exsd
+    schema/address.exsd
+    schema/network.exsd
+    schema/camera.exsd
+    schema/protocol.exsd
+    schema/importer.exsd
+    schema/scene.exsd
+    schema/input.exsd
+    schema/boundingvolume.exsd
+    schema/databaseschema.exsd
+    schema/navigation.exsd
+    schema/scripting.exsd
+    schema/resource.exsd
+    schema/world.exsd
+    schema/widgets.exsd
+    schema/sound.exsd
+    schema/rendering.exsd
+    schema/cloud.exsd
+	DESTINATION
+    ${CMAKE_INSTALL_PREFIX}/../../etc/Zen/${PROJECT_PREFIX}/schema/
+)
+
+endif (NOT MSVC)
+
