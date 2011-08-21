@@ -156,6 +156,7 @@ DataElement::getStringValue() const
     switch(m_type)
     {
     case NULL_TYPE:
+        value << "NULL";
         break;
     case INTEGER:
         value << boost::any_cast<boost::int64_t>(m_value);
@@ -222,10 +223,18 @@ DataElement::getRealValue() const
 {
     if (m_type == REAL)
     {
-        return boost::any_cast<Math::Real>(m_value);
+        if (std::string(m_value.type().name()) == std::string(typeid(double).name()))
+        {
+            return static_cast<Math::Real>(boost::any_cast<double>(m_value));
+        }
+        else
+        if (std::string(m_value.type().name()) == std::string(typeid(float).name()))
+        {
+            return static_cast<Math::Real>(boost::any_cast<float>(m_value));
+        }
     }
 
-    throw Utility::runtime_exception("DataElement::getRealValue(): Error, not implemented");
+    throw Utility::runtime_exception("DataElement::getRealValue(): Error, invalid type.");
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~

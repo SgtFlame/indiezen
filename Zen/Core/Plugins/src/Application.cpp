@@ -35,6 +35,8 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
 
+
+
 #include <iostream>
 
 #include <string.h>
@@ -141,8 +143,7 @@ Application::onPluginPathElement(XMLConfigurationElement::ptr_type _pElement)
     // Get the plugin path and inform the plugin manager.
     boost::filesystem::path pluginPath = 
         boost::filesystem::system_complete(
-                boost::filesystem::path(_pElement->getAttribute("path"), 
-                boost::filesystem::native)
+                boost::filesystem::path(_pElement->getAttribute("path"))
             ).normalize();
 
     PluginManager::getSingleton().setPluginPath(pluginPath);
@@ -155,8 +156,7 @@ Application::onModulePathElement(XMLConfigurationElement::ptr_type _pElement)
     // Get the module path and inform the plugin manager.
     boost::filesystem::path modulePath = 
         boost::filesystem::system_complete(
-                boost::filesystem::path(_pElement->getAttribute("path"), 
-                boost::filesystem::native)
+                boost::filesystem::path(_pElement->getAttribute("path"))
             ).normalize();
 
     PluginManager::getSingleton().setModulePath(modulePath);

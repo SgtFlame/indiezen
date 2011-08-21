@@ -236,7 +236,7 @@ int main(int argc, const char* argv[])
         // Install the application
         boost::filesystem::path configPath = boost::filesystem::system_complete
             (
-                boost::filesystem::path(argv[1], boost::filesystem::native)
+                boost::filesystem::path(argv[1])
             ).normalize();
 
         Zen::Plugins::I_PluginManager::getSingleton().setRootPath('~', currentPath);
