@@ -97,7 +97,7 @@ ZenServer::init(int _argc, const char* _argv[])
     // Initialize application
     boost::filesystem::path configPath = boost::filesystem::system_complete
         (
-            boost::filesystem::path(m_configPath, boost::filesystem::native)
+            boost::filesystem::path(m_configPath)
         ).normalize();
     Zen::Plugins::I_PluginManager::app_ptr_type pApp = Zen::Plugins::I_PluginManager::getSingleton().installApplication(configPath);
 

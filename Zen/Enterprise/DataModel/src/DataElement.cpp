@@ -156,6 +156,7 @@ DataElement::getStringValue() const
     switch(m_type)
     {
     case NULL_TYPE:
+        value << "NULL";
         break;
     case INTEGER:
         value << boost::any_cast<boost::int64_t>(m_value);
@@ -166,6 +167,9 @@ DataElement::getStringValue() const
     case DATETIME:
         value.imbue(std::locale(value.getloc(), time_facet));
         value << boost::any_cast<boost::posix_time::ptime>(m_value);
+        break;
+    case BOOL:
+        value << (boost::any_cast<bool>(m_value) ? "true" : "false");
         break;
     case UNKNOWN:
         if (m_value.type() == typeid(std::string))
@@ -187,10 +191,12 @@ DataElement::getStringValue() const
             /// TODO Implement
             return value.str();
         }
+#if 0   // deprecated
         else if (m_value.type() == typeid(bool))
         {
         	return boost::any_cast<bool>(m_value) ? "true" : "false";
         }
+#endif  // deprecated
         // No break here.  Error if type wasn't found.
     default:
         // TODO Implement type coercion
@@ -222,10 +228,18 @@ DataElement::getRealValue() const
 {
     if (m_type == REAL)
     {
-        return boost::any_cast<Math::Real>(m_value);
+        if (std::string(m_value.type().name()) == std::string(typeid(double).name()))
+        {
+            return static_cast<Math::Real>(boost::any_cast<double>(m_value));
+        }
+        else
+        if (std::string(m_value.type().name()) == std::string(typeid(float).name()))
+        {
+            return static_cast<Math::Real>(boost::any_cast<float>(m_value));
+        }
     }
 
-    throw Utility::runtime_exception("DataElement::getRealValue(): Error, not implemented");
+    throw Utility::runtime_exception("DataElement::getRealValue(): Error, invalid type.");
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
