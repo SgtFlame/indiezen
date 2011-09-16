@@ -168,6 +168,9 @@ DataElement::getStringValue() const
         value.imbue(std::locale(value.getloc(), time_facet));
         value << boost::any_cast<boost::posix_time::ptime>(m_value);
         break;
+    case BOOL:
+        value << (boost::any_cast<bool>(m_value) ? "true" : "false");
+        break;
     case UNKNOWN:
         if (m_value.type() == typeid(std::string))
         {
@@ -188,10 +191,12 @@ DataElement::getStringValue() const
             /// TODO Implement
             return value.str();
         }
+#if 0   // deprecated
         else if (m_value.type() == typeid(bool))
         {
         	return boost::any_cast<bool>(m_value) ? "true" : "false";
         }
+#endif  // deprecated
         // No break here.  Error if type wasn't found.
     default:
         // TODO Implement type coercion
