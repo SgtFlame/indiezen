@@ -149,6 +149,8 @@ DatabaseTransaction::executeQuery(pQuery_type _pQuery,
             }
             else
             {
+                rollback();
+
                 std::stringstream message;
                 message << "DatabaseTransaction::executeQuery() : Postgres result retrieval error -- "
                         << std::string(PQerrorMessage(m_pConnection));

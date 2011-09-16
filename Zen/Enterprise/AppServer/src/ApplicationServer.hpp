@@ -219,6 +219,7 @@ private:
     typedef Zen::Memory::managed_ptr<DatabaseConnections>       pDatabaseConnections_type;
     typedef std::map<std::string, pDatabaseConnections_type>    DatabaseConnectionsMap_type;
     DatabaseConnectionsMap_type m_databaseConnectionsMap;
+    Threading::I_Mutex*         m_pDatabaseConnectionsMapMutex;
     /// @}
 
 };  // interface I_ApplicationServer

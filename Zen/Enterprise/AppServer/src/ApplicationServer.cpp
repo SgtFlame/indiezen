@@ -90,12 +90,14 @@ ApplicationServer::ApplicationServer()
 ,   m_pStartCondition(Threading::ConditionFactory::create())
 ,   m_pMessageRegistry_type(new NumericTypeMessageRegistry(), &destroy)
 ,   m_databaseConnectionsMap()
+,   m_pDatabaseConnectionsMapMutex(Threading::MutexFactory::create())
 {
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 ApplicationServer::~ApplicationServer()
 {
+    Threading::MutexFactory::destroy(m_pDatabaseConnectionsMapMutex);
     Threading::MutexFactory::destroy(m_pProtocolGuard);
     Threading::MutexFactory::destroy(m_pApplicationGuard);
     Threading::ConditionFactory::destroy(m_pStartCondition);
@@ -880,15 +882,19 @@ ApplicationServer::getDatabaseConnection(const std::string& _database)
     /// Do we need to guard this?
     Zen::Threading::I_Thread::ThreadId _threadId = Threading::I_Thread::getCurrentThreadId();
 
-    DatabaseConnectionsMap_type::iterator iter = m_databaseConnectionsMap.find(_database);
-    if( iter != m_databaseConnectionsMap.end() )
     {
-        return iter->second->getConnection(_threadId);
-    }
-    else
-    {
-        return pDatabaseConnection_type();
-        // TODO Error?
+        Threading::CriticalSection guard(m_pDatabaseConnectionsMapMutex);
+
+        DatabaseConnectionsMap_type::iterator iter = m_databaseConnectionsMap.find(_database);
+        if( iter != m_databaseConnectionsMap.end() )
+        {
+            return iter->second->getConnection(_threadId);
+        }
+        else
+        {
+            return pDatabaseConnection_type();
+            // TODO Error?
+        }
     }
 }
 
@@ -1035,6 +1041,8 @@ ApplicationServer::installDatabaseConnections(pConfig_type _pDatabasesConfig)
 void
 ApplicationServer::createDatabaseEntry(const std::string& _connectionName, const std::string& _databaseType, config_type& _config)
 {
+    Threading::CriticalSection guard(m_pDatabaseConnectionsMapMutex);
+
     DatabaseConnectionsMap_type::iterator iter = m_databaseConnectionsMap.find(_connectionName);
     if( iter == m_databaseConnectionsMap.end() )
     {
