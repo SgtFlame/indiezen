@@ -57,6 +57,7 @@ public:
     /// @{
 protected:
              I_ScriptMethod();
+public:
     virtual ~I_ScriptMethod();
     /// @}
 

@@ -14,6 +14,9 @@ Find_Package(IndieZen REQUIRED)
 Find_Package(LibXml2 REQUIRED)
 Find_Package(Boost REQUIRED serialization system filesystem)
 Find_Package(Threads)
+if (MSVC)
+Find_Package(VLD)
+endif (MSVC)
 
 SET (LIB_TYPE SHARED)
 
@@ -27,27 +30,42 @@ set ( ZenCore_SRC
     )
     
 message("Boost defs: ${Boost_DEFINITIONS}")
-    
-add_definitions( -DZENCORE_EXPORTS ${LIBXML2_DEFINITIONS} ${Zen_DEFINITIONS} )
+
+set (ZenCore_DEFINITIONS -DZENCORE_EXPORTS ${LIBXML2_DEFINITIONS} ${Zen_DEFINITIONS})
+if (MSVC_IDE)
+    set (ZenCore_DEFINITIONS ${ZenCore_DEFINITIONS} -DTHREADMODEL_WIN32 )
+endif(MSVC_IDE)
+
+if (MSVC AND VLD_FOUND)
+	set (ZenCore_DEFINITIONS ${ZenCore_DEFINITIONS} -DVLD)
+endif (MSVC AND VLD_FOUND)
+
+add_definitions(${ZenCore_DEFINITIONS})
 
 include_directories ( ${Boost_INCLUDE_DIR} ${INDIEZEN_PARENT} ${LIBXML2_INCLUDE_DIR} )
+if (MSVC AND VLD_FOUND)
+	include_directories (${VLD_INCLUDE_DIR})
+endif (MSVC AND VLD_FOUND)
 
-link_directories ( ${DEV_LIB}  ${LibXML2_LIBRARY_DIRS} ${Boost_LIBRARY_DIRS} )
+set (ZenCore_LINK_DIRECTORIES ${DEV_LIB} ${LibXML2_LIBRARY_DIRS} ${Boost_LIBRARY_DIRS})
+if (MSVC AND VLD_FOUND)
+	set (ZenCore_LINK_DIRECTORIES ${ZenCore_LINK_DIRECTORIES} ${VLD_LIB_DIR})
+endif (MSVC AND VLD_FOUND)
+link_directories (${ZenCore_LINK_DIRECTORIES})
 
 add_library ( ZenCore ${LIB_TYPE} ${ZenCore_SRC} )
 
-message("DEBUG: libxml2 libs: ${LIBXML2_LIBRARIES}")
+set (ZenCore_LIBRARIES ${LIBXML2_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${Boost_LIBRARIES})
+if (MSVC AND VLD_FOUND)
+	set(ZenCore_LIBRARIES ${ZenCore_LIBRARIES} ${VLD_LIBRARIES})
+endif (MSVC AND VLD_FOUND)
 
-target_link_libraries( ZenCore ${LIBXML2_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${Boost_LIBRARIES} )
+target_link_libraries( ZenCore ${ZenCore_LIBRARIES})
 
 set_target_properties ( ZenCore 
 						PROPERTIES
 						DEBUG_POSTFIX "_d"
 					)
-
-if (MSVC_IDE)
-    add_definitions( -DTHREADMODEL_WIN32 )
-endif(MSVC_IDE)
 
 <%HeaderInstallDirectives%>
 

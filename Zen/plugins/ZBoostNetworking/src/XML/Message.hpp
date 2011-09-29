@@ -26,6 +26,8 @@
 #ifndef ZEN_ENTERPRISE_APPSERVER_XML_MESSAGE_HPP_INCLUDED
 #define ZEN_ENTERPRISE_APPSERVER_XML_MESSAGE_HPP_INCLUDED
 
+#include "../../Configuration.hpp"
+
 #include <Zen/Enterprise/AppServer/I_Message.hpp>
 
 #include <boost/cstdint.hpp>

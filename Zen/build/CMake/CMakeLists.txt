@@ -48,26 +48,60 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE "${DEV_BIN}")
 
 set ( ZEN_PROJECTS
 	Core
-	Engine
-	Enterprise
-	Starter/Base/BaseCommon
-	Starter/Base/BaseClient
-	Starter/Base/ZGameLoader
-	Starter/Base/ZenServer
-	Spaces/ObjectModel
 	plugins
 )
 
-foreach(PROJECT_PATH ${ZEN_PROJECTS})
-	message("-- ${PROJECT_PATH}") 
-	add_subdirectory("${ZEN_HOME}/${PROJECT_PATH}" "${PROJECT_PATH}")
-endforeach(PROJECT_PATH)
+message("-- Core")
+add_subdirectory("${ZEN_HOME}/Core" "Core")
 
-option(ZEN_BUILD_ENTERPRISE_PLUGINS "Build Enterprise Plugins" FALSE)
-if (ZEN_BUILD_ENTERPRISE_PLUGINS)
-    message("-- Enterprise Plugins")
-    add_subdirectory("${ZEN_HOME}/EnterprisePlugins" "EnterprisePlugins")
-endif (ZEN_BUILD_ENTERPRISE_PLUGINS)
+option(ZEN_BUILD_ENGINE "Build Zen Engine" TRUE)
+if (ZEN_BUILD_ENGINE)
+
+	message("-- Engine")
+	add_subdirectory("${ZEN_HOME}/Engine" "Engine")
+
+	option(ZEN_BUILD_ENGINE_PLUGINS "Build Zen Engine Plugins" TRUE)
+	
+endif (ZEN_BUILD_ENGINE)
+
+option(ZEN_BUILD_ENTERPRISE "Build Zen Enterprise" TRUE)
+if (ZEN_BUILD_ENTERPRISE)
+
+	message("-- Enterprise")
+	add_subdirectory("${ZEN_HOME}/Enterprise" "Enterprise")
+	
+	message("-- Spaces/ObjectModel")
+	add_subdirectory("${ZEN_HOME}/Spaces/ObjectModel" "Spaces/ObjectModel")
+	
+	option(ZEN_BUILD_ENTERPRISE_PLUGINS "Build Enterprise Plugins" FALSE)
+	if (ZEN_BUILD_ENTERPRISE_PLUGINS)
+	
+		message("-- Enterprise Plugins")
+		add_subdirectory("${ZEN_HOME}/EnterprisePlugins" "EnterprisePlugins")
+		
+	endif (ZEN_BUILD_ENTERPRISE_PLUGINS)
+	
+endif (ZEN_BUILD_ENTERPRISE)
+
+option(ZEN_BUILD_STARTER "Build Zen Starter projects" FALSE)
+if (ZEN_BUILD_STARTER)
+
+	set (ZEN_STARTER_PROJECTS
+		Starter/Base/BaseCommon
+		Starter/Base/BaseClient
+		Starter/Base/ZGameLoader
+		Starter/Base/ZenServer
+	)
+
+	foreach(PROJECT_PATH ${ZEN_STARTER_PROJECTS})
+		message("-- ${PROJECT_PATH}") 
+		add_subdirectory("${ZEN_HOME}/${PROJECT_PATH}" "${PROJECT_PATH}")
+	endforeach(PROJECT_PATH)
+
+endif (ZEN_BUILD_STARTER)
+
+message("-- plugins")
+add_subdirectory("${ZEN_HOME}/plugins" "plugins")
 
 option(ZEN_BUILD_TESTS "Build Tests" FALSE)
 if (ZEN_BUILD_TESTS)

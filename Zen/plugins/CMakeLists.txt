@@ -15,6 +15,7 @@ list (REMOVE_DUPLICATES CMAKE_MODULE_PATH)
 message("-- Framework")
 add_subdirectory("${ZEN_HOME}/plugins/Framework" Framework)
 
+if (ZEN_BUILD_ENGINE_PLUGINS)
 #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 # Include various modules of ZOSS plugins
 #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -32,19 +33,6 @@ else(OGRE_FOUND)
 endif(OGRE_FOUND)
 
 #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-# ZSQLite - Can always do this since the SQLite code is included
-
-message("-- ZSQLite")
-add_subdirectory("${ZEN_HOME}/plugins/ZSQLite" ZSQLite)
-
-#-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-# ZBoostNetworking - Only depends on Boost, so always include it.
-
-message("-- ZBoostNetworking")
-add_subdirectory("${ZEN_HOME}/plugins/ZBoostNetworking" ZBoostNetworking)
-
-
-#-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 # ZInput, but only if OIS is found
 
 Find_Package(OIS)
@@ -55,41 +43,6 @@ if(OIS_FOUND)
 else(OIS_FOUND)
     message("-- ZInput will NOT be compiled.  OIS was not found.")
 endif(OIS_FOUND)
-
-#-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-# ZLua, but only if Lua is found
-
-Find_Package(Lua51)
-set (LUA_FOUND ${LUA51_FOUND})
-
-if (NOT LUA_FOUND)
-	Find_Package(Lua50)
-	set (LUA_FOUND ${LUA50_FOUND})
-endif (NOT LUA_FOUND)
-
-if (NOT LUA_FOUND)
-	Find_Package(Lua)
-endif (NOT LUA_FOUND)
-
-# Get the clibs directory to add to the .vcproj.user path
-IF (MSVC_IDE)
-    FIND_PATH(LUA_ROOT_DIR clibs
-        HINTS
-        ${DEPENDENCIES_HOME}/lua
-        ${INDIEZEN_PARENT}/lua
-    )
-    IF (LUA_ROOT_DIR)
-        set(LUA_CLIBS_DIR ${LUA_ROOT_DIR}/clibs CACHE FILEPATH "Lua clibs directory" )
-        message("Lua cpath: ${LUA_CLIBS_DIR}")
-    ENDIF (LUA_ROOT_DIR)
-ENDIF(MSVC_IDE)
-
-if(LUA_FOUND)
-    message("-- ZLua")
-    add_subdirectory( ZLua )
-else(NOT LUA_FOUND)
-    message("-- ZLua will NOT be compiled.  Lua was not found.")
-endif(LUA_FOUND)
 
 #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 # ZNewton, but online if Newton is found
@@ -173,18 +126,6 @@ message("-- ZMicroPather")
 add_subdirectory(ZMicroPather)
 
 #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-# ZPython, but only if Python is found
-
-Find_Package(Python)
-
-if (PYTHON_FOUND)
-	message("-- ZPython ")
-	add_subdirectory(ZPython)
-else(PYTHON_FOUND)
-	message("ZPython will NOT be compiled. Python was not found.")
-endif(PYTHON_FOUND)
-
-#-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
 Find_Package(OpenAL)
 Find_Package(Alut)
@@ -200,7 +141,10 @@ endif(OPENAL_FOUND AND ALUT_FOUND AND OGG_FOUND AND VORBIS_FOUND)
 
 #add_subdirectory( ZOpenAL )
 
+endif (ZEN_BUILD_ENGINE)
 #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+
+if (ZEN_BUILD_ENTERPRISE)
 
 Find_Package(PostgreSql)
 
@@ -210,6 +154,66 @@ if (POSTGRESQL_FOUND)
 else(POSTGRESQL_FOUND)
     message("ZPostgres will NOT be compiled. Dependencies not found.")
 endif (POSTGRESQL_FOUND)
+#-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+# ZSQLite - Can always do this since the SQLite code is included
+
+message("-- ZSQLite")
+add_subdirectory("${ZEN_HOME}/plugins/ZSQLite" ZSQLite)
+
+#-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+# ZBoostNetworking - Only depends on Boost, so always include it.
+
+message("-- ZBoostNetworking")
+add_subdirectory("${ZEN_HOME}/plugins/ZBoostNetworking" ZBoostNetworking)
+
+endif(ZEN_BUILD_ENTERPRISE)
+#-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+# ZLua, but only if Lua is found
+
+Find_Package(Lua51)
+set (LUA_FOUND ${LUA51_FOUND})
+
+if (NOT LUA_FOUND)
+	Find_Package(Lua50)
+	set (LUA_FOUND ${LUA50_FOUND})
+endif (NOT LUA_FOUND)
+
+if (NOT LUA_FOUND)
+	Find_Package(Lua)
+endif (NOT LUA_FOUND)
+
+# Get the clibs directory to add to the .vcproj.user path
+IF (MSVC_IDE)
+    FIND_PATH(LUA_ROOT_DIR clibs
+        HINTS
+        ${DEPENDENCIES_HOME}/lua
+        ${INDIEZEN_PARENT}/lua
+    )
+    IF (LUA_ROOT_DIR)
+        set(LUA_CLIBS_DIR ${LUA_ROOT_DIR}/clibs CACHE FILEPATH "Lua clibs directory" )
+        message("Lua cpath: ${LUA_CLIBS_DIR}")
+    ENDIF (LUA_ROOT_DIR)
+ENDIF(MSVC_IDE)
+
+if(LUA_FOUND)
+    message("-- ZLua")
+    add_subdirectory( ZLua )
+else(NOT LUA_FOUND)
+    message("-- ZLua will NOT be compiled.  Lua was not found.")
+endif(LUA_FOUND)
+
+#-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+# ZPython, but only if Python is found
+
+Find_Package(Python)
+
+if (PYTHON_FOUND)
+	message("-- ZPython ")
+	add_subdirectory(ZPython)
+else(PYTHON_FOUND)
+	message("ZPython will NOT be compiled. Python was not found.")
+endif(PYTHON_FOUND)
+
 #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 # These have not yet been ported.
 #  Please add them if you port them ;)

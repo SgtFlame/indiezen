@@ -12,8 +12,9 @@ list (REMOVE_DUPLICATES CMAKE_MODULE_PATH)
 
 Find_Package(IndieZen REQUIRED)
 Find_Package(Boost REQUIRED serialization )
-
-message("Libraries: ${Boost_LIBRARIES}")
+if (MSVC)
+Find_Package(VLD)
+endif (MSVC)
 
 SET (LIB_TYPE SHARED)
 
@@ -26,17 +27,33 @@ set ( ZBoostNetworking_SRC
 <%SourceList%>
     )
 
-add_definitions( -DZBOOSTNETWORKING_EXPORTS ${Zen_DEFINITIONS} )
+set (ZBoostNetworking_DEFINITIONS -DZBOOSTNETWORKING_EXPORTS ${Zen_DEFINITIONS})
+if (MSVC AND VLD_FOUND)
+	set (ZBoostNetworking_DEFINITIONS ${ZBoostNetworking_DEFINITIONS} -DVLD)
+endif (MSVC AND VLD_FOUND)
+add_definitions(${ZBoostNetworking_DEFINITIONS})
 
 include_directories ( ${Boost_INCLUDE_DIRS} ${INDIEZEN_PARENT} )
+if (MSVC AND VLD_FOUND)
+	include_directories (${VLD_INCLUDE_DIR})
+endif (MSVC AND VLD_FOUND)
 
-link_directories ( ${DEV_LIB} ${Boost_LIBRARY_DIRS}  )
+set (ZBoostNetworking_LINK_DIRECTORIES ${DEV_LIB} ${Boost_LIBRARY_DIRS})
+if (MSVC AND VLD_FOUND)
+	set (ZBoostNetworking_LINK_DIRECTORIES ${ZBoostNetworking_LINK_DIRECTORIES} ${VLD_LIB_DIR})
+endif (MSVC AND VLD_FOUND)
+link_directories (${ZBoostNetworking_LINK_DIRECTORIES})
 
 add_library ( ZBoostNetworking ${LIB_TYPE} ${ZBoostNetworking_SRC} )
 
 add_dependencies(ZBoostNetworking ZenCore ZenEnterprise ZenObjectModel )
 
-target_link_libraries( ZBoostNetworking ZenCore ZenEnterprise ZenObjectModel ${Boost_LIBRARIES} )
+set (ZBoostNetworking_LIBRARIES ZenCore ZenEnterprise ZenObjectModel ${Boost_LIBRARIES})
+if (MSVC AND VLD_FOUND)
+	set(ZBoostNetworking_LIBRARIES ${ZBoostNetworking_LIBRARIES} ${VLD_LIBRARIES})
+endif (MSVC AND VLD_FOUND)
+
+target_link_libraries( ZBoostNetworking ${ZBoostNetworking_LIBRARIES})
 
 set_target_properties ( ZBoostNetworking 
 						PROPERTIES

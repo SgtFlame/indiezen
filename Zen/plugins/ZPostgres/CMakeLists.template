@@ -13,6 +13,9 @@ list (REMOVE_DUPLICATES CMAKE_MODULE_PATH)
 Find_Package(IndieZen REQUIRED)
 Find_Package(Boost REQUIRED )
 Find_Package(PostgreSql REQUIRED)
+if (MSVC)
+Find_Package(VLD)
+endif (MSVC)
 
 SET (LIB_TYPE SHARED)
 
@@ -25,17 +28,33 @@ set ( ZPostgres_SRC
 <%SourceList%>
     )
 
-add_definitions( -DZPOSTGRES_EXPORTS ${Zen_DEFINITIONS})
+set (ZPostgres_DEFINITIONS -DZPOSTGRES_EXPORTS ${Zen_DEFINITIONS})
+if (MSVC AND VLD_FOUND)
+	set (ZPostgres_DEFINITIONS ${ZPostgres_DEFINITIONS} -DVLD)
+endif (MSVC AND VLD_FOUND)
+add_definitions(${ZPostgres_DEFINITIONS})
 
 include_directories ( ${Boost_INCLUDE_DIR} ${INDIEZEN_PARENT} ${POSTGRESQL_INCLUDE_DIR} )
+if (MSVC AND VLD_FOUND)
+	include_directories (${VLD_INCLUDE_DIR})
+endif (MSVC AND VLD_FOUND)
 
-link_directories ( ${DEV_LIB} )
+set (ZPostgres_LINK_DIRECTORIES ${DEV_LIB})
+if (MSVC AND VLD_FOUND)
+	set (ZPostgres_LINK_DIRECTORIES ${ZPostgres_LINK_DIRECTORIES} ${VLD_LIB_DIR})
+endif (MSVC AND VLD_FOUND)
+link_directories (${ZPostgres_LINK_DIRECTORIES})
 
 add_library ( ZPostgres ${LIB_TYPE} ${ZPostgres_SRC} )
 
 add_dependencies(ZPostgres ZenCore ZenEnterprise )
 
-target_link_libraries( ZPostgres ZenEnterprise ${POSTGRESQL_LIBRARIES})
+set (ZPostgres_LIBRARIES ZenEnterprise ${POSTGRESQL_LIBRARIES})
+if (MSVC AND VLD_FOUND)
+	set(ZPostgres_LIBRARIES ${ZPostgres_LIBRARIES} ${VLD_LIBRARIES})
+endif (MSVC AND VLD_FOUND)
+
+target_link_libraries( ZPostgres ${ZPostgres_LIBRARIES})
 
 set_target_properties ( ZPostgres 
 						PROPERTIES

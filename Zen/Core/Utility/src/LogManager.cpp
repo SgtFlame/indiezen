@@ -52,37 +52,37 @@ LogManager::pLogService_type
 LogManager::create(const std::string& _logServiceName)
 {
     /// TODO Add config parameters for log service.
-    Zen::Threading::CriticalSection guard(m_pLogServicesMutex);
-
-    LogServices_type::iterator iter = m_logServices.find(_logServiceName);
-    if (iter == m_logServices.end())
     {
-        LogService* pRawLogService = new LogService(_logServiceName);
+        Zen::Threading::CriticalSection guard(m_pLogServicesMutex);
 
-        pLogService_type pLogService(
-            pRawLogService,
-            boost::bind(
-                &LogManager::destroy,
-                _1
-            )
-        );
-
-        m_logServices[_logServiceName] = pLogService.getWeak();
-
-        return pLogService;
-    }
-    else
-    {
-        if (!iter->second.expired())
+        LogServices_type::iterator iter = m_logServices.find(_logServiceName);
+        if (iter == m_logServices.end())
         {
-            return iter->second.lock();
+            LogService* pRawLogService = new LogService(_logServiceName);
+
+            pLogService_type pLogService(
+                pRawLogService,
+                destroy
+            );
+
+            m_logServices[_logServiceName] = pLogService.getWeak();
+
+            return pLogService;
         }
         else
         {
-            m_logServices.erase(iter);
-            return create(_logServiceName);
+            if (!iter->second.expired())
+            {
+                return iter->second.lock();
+            }
+            else
+            {
+                m_logServices.erase(iter);
+            }
         }
     }
+
+    return create(_logServiceName);
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~

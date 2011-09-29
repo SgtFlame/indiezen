@@ -26,6 +26,8 @@
 #ifndef ZEN_ENTERPRISE_APPSERVER_UDP_ADDRESS_HPP_INCLUDED
 #define ZEN_ENTERPRISE_APPSERVER_UDP_ADDRESS_HPP_INCLUDED
 
+#include "../../Configuration.hpp"
+
 #include <Zen/Enterprise/Networking/I_Address.hpp>
 
 #include <boost/asio/ip/address.hpp>

@@ -124,7 +124,7 @@ getGameClient(const std::string& _name)
     Zen::Plugins::I_PluginManager::getSingleton().installPlugin(_name);
 
     Zen::Plugins::I_ExtensionRegistry& extensionRegistry = Zen::Plugins::I_ExtensionRegistry::getSingleton();
-    Zen::Plugins::I_ExtensionQuery* const pQuery = extensionRegistry.createQuery();
+    const Zen::Plugins::I_ExtensionRegistry::pExtensionQuery_type pQuery = extensionRegistry.createQuery();
 
     pQuery->setNamespace("Zen::Engine::Client");
     pQuery->setExtensionPoint("GameClient");

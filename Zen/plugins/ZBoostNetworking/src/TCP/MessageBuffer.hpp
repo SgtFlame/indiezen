@@ -45,7 +45,7 @@ class MessageBuffer
 {
 public:
     enum { HEADER_LENGTH = 4 };
-    enum { MAX_BODY_LENGTH = 4096 };
+    enum { MAX_BODY_LENGTH = 65503 };
 
 public:
     char* getData();

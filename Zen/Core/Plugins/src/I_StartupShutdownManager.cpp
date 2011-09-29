@@ -49,7 +49,18 @@ I_StartupShutdownManager::~I_StartupShutdownManager()
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 static std::map< std::string, I_StartupShutdownManager* > sm_managers;
 static Threading::I_Mutex* sm_pManagerGuard = Threading::MutexFactory::create();
-namespace { class gc { public: ~gc() { Threading::MutexFactory::destroy(sm_pManagerGuard); } }; }
+namespace { 
+    
+    class gc 
+    { 
+    public: 
+        ~gc() 
+        { 
+            Threading::MutexFactory::destroy(sm_pManagerGuard); 
+        } 
+    }; 
+    static gc sm_garbageCollector;
+}   // namespace
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 I_StartupShutdownManager&
 I_StartupShutdownManager::getInstance(const std::string& _name)

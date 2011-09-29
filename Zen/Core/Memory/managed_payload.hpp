@@ -100,9 +100,32 @@ struct AllocationPool_type
     UseCount_type*                  m_pAvailArray;  // we're not going to deallocate these arrays, until the process ends (and then the OS does the work).
     UseCount_type*                  m_pNextInArray;
 
-    AllocationPool_type () : m_poolLock(), m_pAvailList(0)  {m_pNextInArray = & (m_pAvailArray = new UseCount_type[SYNCH_PTR_PRIVATE_ALLOC_BLOCKCOUNT]) [SYNCH_PTR_PRIVATE_ALLOC_BLOCKCOUNT];}
+    AllocationPool_type() 
+    :   m_poolLock()
+    ,   m_pAvailList(NULL)  
+    {
+#ifdef HOST_WIN32
+        // Disable memory allocation tracking.
+        int flags = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
+        flags &= ~_CRTDBG_ALLOC_MEM_DF;
+        _CrtSetDbgFlag(flags);
+#endif  // HOST_WIN32
+
+        m_pNextInArray = &(
+            m_pAvailArray = 
+                new UseCount_type[SYNCH_PTR_PRIVATE_ALLOC_BLOCKCOUNT]
+        )[SYNCH_PTR_PRIVATE_ALLOC_BLOCKCOUNT];
+
+#ifdef HOST_WIN32
+        // Enable memory allocation tracking.
+        flags = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
+        flags |= _CRTDBG_ALLOC_MEM_DF;
+        _CrtSetDbgFlag(flags);
+#endif  // HOST_WIN32
+
+    }
     #else   // ! ENABLE_SYNCH_PTR_PRIVATE_ALLOC
-    AllocationPool_type () : m_poolLock()                   {}
+    AllocationPool_type () : m_poolLock() {}
     #endif  // ! ENABLE_SYNCH_PTR_PRIVATE_ALLOC
 };
 
@@ -233,6 +256,9 @@ public:
 
     /// Copy constructor from an optional payload.  Does not increment the use count.
     managed_payload(const managed_payload* const _pRight);
+
+    /// Destructor
+    ~managed_payload();
     /// @}
 
 	/// @name Member Variables
@@ -257,14 +283,17 @@ managed_payload<element_type>::managed_payload(const managed_payload* const _pRi
 {
     if (_pRight != NULL && _pRight->m_pElement != NULL)
     {
-        m_pPool         = _pRight->m_pPool;
-        m_pElement      = _pRight->m_pElement;
-        m_pUseCount     = _pRight->m_pUseCount;
-        m_pDestroyMethod= _pRight->m_pDestroyMethod;
+        m_pPool                = _pRight->m_pPool;
+        m_pElement             = _pRight->m_pElement;
+        m_pUseCount            = _pRight->m_pUseCount;
+        m_pDestroyMethod       = _pRight->m_pDestroyMethod;
     }
     else
     {
-        m_pElement = NULL;
+        m_pPool          = getClassPool();
+        m_pElement       = NULL;
+        m_pUseCount      = NULL;
+        m_pDestroyMethod = NULL;
     }
 }
 
@@ -273,9 +302,9 @@ template<typename element_type>
 inline
 managed_payload<element_type>::managed_payload()
 :   m_pPool(getClassPool())
-,   m_pElement()
-,   m_pUseCount()
-,   m_pDestroyMethod()
+,   m_pElement(NULL)
+,   m_pUseCount(NULL)
+,   m_pDestroyMethod(NULL)
 {
 }
 
@@ -285,8 +314,8 @@ inline
 managed_payload<element_type>::managed_payload(element_type* _pElement)
 :   m_pPool(getClassPool())
 ,   m_pElement(_pElement)
-,   m_pUseCount()
-,   m_pDestroyMethod()
+,   m_pUseCount(NULL)
+,   m_pDestroyMethod(NULL)
 {
     if (m_pElement != NULL)
     {
@@ -300,14 +329,29 @@ inline
 managed_payload<element_type>::managed_payload(element_type* _pElement, destroy_method_type _destroyMethod)
 :   m_pPool(getClassPool())
 ,   m_pElement(_pElement)
-,   m_pUseCount()
+,   m_pUseCount(NULL)
+,   m_pDestroyMethod(NULL)
 {
     if (m_pElement != NULL)
     {
         borrowCounter();
     }
 
+#ifdef HOST_WIN32
+    // Disable memory allocation tracking.
+    int flags = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
+    flags &= ~_CRTDBG_ALLOC_MEM_DF;
+    _CrtSetDbgFlag(flags);
+#endif  // HOST_WIN32
+
     m_pDestroyMethod = new DestroyMethod<element_type>(_destroyMethod, managed_weak_ptr<typename managed_payload::Element_type>(this));
+
+#ifdef HOST_WIN32
+    // Enable memory allocation tracking.
+    flags = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
+    flags |= _CRTDBG_ALLOC_MEM_DF;
+    _CrtSetDbgFlag(flags);
+#endif  // HOST_WIN32
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
@@ -330,6 +374,13 @@ managed_payload<element_type>::managed_payload(const managed_payload<another_ele
 ,   m_pElement(dynamic_cast<typename managed_payload::Element_type*>(_right.m_pElement))
 ,   m_pUseCount(_right.m_pUseCount)
 ,   m_pDestroyMethod(_right.m_pDestroyMethod)
+{
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+template<typename element_type>
+inline
+managed_payload<element_type>::~managed_payload()
 {
 }
 
@@ -418,7 +469,24 @@ managed_payload<element_type>::destroy(const boost::true_type&)
     if (m_pElement != NULL)
     {
         m_pDestroyMethod->destroy();
+
+#ifdef HOST_WIN32
+            // Disable memory allocation tracking.
+            int flags = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
+            flags &= ~_CRTDBG_ALLOC_MEM_DF;
+            _CrtSetDbgFlag(flags);
+#endif  // HOST_WIN32
+
         delete m_pDestroyMethod;
+
+#ifdef HOST_WIN32
+            // Enable memory allocation tracking.
+            flags = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
+            flags |= _CRTDBG_ALLOC_MEM_DF;
+            _CrtSetDbgFlag(flags);
+#endif  // HOST_WIN32
+
+        m_pDestroyMethod = NULL;
 
         returnCounter();
 
@@ -508,7 +576,22 @@ managed_payload<element_type>::serialize(boost::archive::polymorphic_iarchive& _
         m_pElement == element_type::create();
         borrowCounter();
 
+#ifdef HOST_WIN32
+        // Disable memory allocation tracking.
+        int flags = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
+        flags &= ~_CRTDBG_ALLOC_MEM_DF;
+        _CrtSetDbgFlag(flags);
+#endif  // HOST_WIN32
+
         m_pDestroyMethod = new DestroyMethod<element_type>(element_type::destroy, managed_weak_ptr<typename managed_payload::Element_type>(this));
+
+#ifdef HOST_WIN32
+        // Enable memory allocation tracking.
+        flags = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
+        flags |= _CRTDBG_ALLOC_MEM_DF;
+        _CrtSetDbgFlag(flags);
+#endif  // HOST_WIN32
+
     }
 
     _archive & *m_pElement;
@@ -540,7 +623,22 @@ managed_payload<element_type>::serialize(boost::archive::polymorphic_oarchive& _
         m_pElement = element_type::create();
         borrowCounter();
 
+#ifdef HOST_WIN32
+        // Disable memory allocation tracking.
+        int flags = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
+        flags &= ~_CRTDBG_ALLOC_MEM_DF;
+        _CrtSetDbgFlag(flags);
+#endif  // HOST_WIN32
+
         m_pDestroyMethod = new DestroyMethod<element_type>(element_type::destroy, managed_weak_ptr<typename managed_payload::Element_type>(this));
+
+#ifdef HOST_WIN32
+        // Enable memory allocation tracking.
+        flags = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
+        flags |= _CRTDBG_ALLOC_MEM_DF;
+        _CrtSetDbgFlag(flags);
+#endif  // HOST_WIN32
+
     }
 
     _archive & *m_pElement;
@@ -583,7 +681,25 @@ managed_payload<element_type>::borrowCounter()
             // Notice that we don't (can't!) deallocate the old array.
             // This isn't a "leak", we're permanently allocating the array's
             // storage.
-            m_pPool->m_pNextInArray = & (m_pPool->m_pAvailArray = new UseCount_type[SYNCH_PTR_PRIVATE_ALLOC_BLOCKCOUNT]) [SYNCH_PTR_PRIVATE_ALLOC_BLOCKCOUNT];
+
+#ifdef HOST_WIN32
+            // Disable memory allocation tracking.
+            int flags = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
+            flags &= ~_CRTDBG_ALLOC_MEM_DF;
+            _CrtSetDbgFlag(flags);
+#endif  // HOST_WIN32
+
+            m_pPool->m_pNextInArray = &(
+                m_pPool->m_pAvailArray = new UseCount_type[SYNCH_PTR_PRIVATE_ALLOC_BLOCKCOUNT]
+            )[SYNCH_PTR_PRIVATE_ALLOC_BLOCKCOUNT];
+
+#ifdef HOST_WIN32
+            // Enable memory allocation tracking.
+            flags = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
+            flags |= _CRTDBG_ALLOC_MEM_DF;
+            _CrtSetDbgFlag(flags);
+#endif  // HOST_WIN32
+
         }
         m_pUseCount = -- m_pPool->m_pNextInArray;
     }

@@ -43,7 +43,10 @@ script_type<ScriptableClass_type>::script_type(script_module& _module, const std
 ,   m_pScriptModule()
 ,   m_typeName(_typeName)
 ,   m_documentation(_documentation)
+,   m_methods()
 ,   m_activated(false)
+,   m_pScriptType()
+,   m_globalObjects()
 {
 }
 
@@ -55,9 +58,26 @@ script_type<ScriptableClass_type>::script_type(pScriptType_type _pScriptType)
 ,   m_pScriptModule(_pScriptType->getScriptModule())
 ,   m_typeName(_pScriptType->getTypeName())
 ,   m_documentation(_pScriptType->getDocumentation())
-,   m_pScriptType(_pScriptType)
+,   m_methods()
 ,   m_activated(false)
+,   m_pScriptType(_pScriptType)
+,   m_globalObjects()
 {
+    Methods_type::iterator methodIter = m_methods.begin();
+    while (methodIter != m_methods.end())
+    {
+        delete methodIter->second;
+        methodIter++;
+    }
+    m_methods.clear();
+
+    GlobalObjects_type::iterator objIter = m_globalObjects.begin();
+    while (objIter != m_globalObjects.end())
+    {
+        delete objIter->second;
+        objIter++;
+    }
+    m_globalObjects.clear();
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~

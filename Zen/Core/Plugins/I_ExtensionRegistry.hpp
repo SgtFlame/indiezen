@@ -54,9 +54,6 @@ public:
     typedef boost::shared_ptr<I_ExtensionPoint>             extension_point_ptr_type;
     /// @deprecated
     /// @see http://www.indiezen.org/wiki/ticket/111
-    typedef I_ExtensionQuery*                               extension_query_ptr_type;
-    /// @deprecated
-    /// @see http://www.indiezen.org/wiki/ticket/111
     typedef boost::shared_ptr<I_Extension>                  extension_ptr_type;
     /// @deprecated
     /// @see http://www.indiezen.org/wiki/ticket/111
@@ -69,6 +66,7 @@ public:
     // New types (old ones are deprecated as they use an older coding style)
     typedef boost::shared_ptr<I_Extension>                  pExtension_type;
     typedef boost::shared_ptr<I_ExtensionPoint>             pExtensionPoint_type;
+    typedef boost::shared_ptr<I_ExtensionQuery>             pExtensionQuery_type;
 
     /// Visitor inteface for traversing extension  points.  
     /// Defined below as an inner class.
@@ -85,14 +83,14 @@ public:
     /// @deprecated Use the visitor version of getExtensionPoints() and 
     ///     I_ExtensionPoint::getExtensions()
     /// @see http://www.indiezen.org/wiki/ticket/111
-    virtual extension_query_ptr_type createQuery() = 0;
+    virtual pExtensionQuery_type createQuery() = 0;
 
     /// Find some extensions based on a query
     /// Note that the ownership of _query is passed on to the result set.
     /// @deprecated Use the visitor version of getExtensionPoints() and 
     ///     I_ExtensionPoint::getExtensions()
     /// @see http://www.indiezen.org/wiki/ticket/111
-    virtual extension_result_set_ptr_type findExtensions(I_ExtensionQuery* const _query) = 0;
+    virtual extension_result_set_ptr_type findExtensions(const pExtensionQuery_type _query) = 0;
 
     /// Get all of the extension points using a visitor
     virtual void getExtensionPoints(I_ExtensionPointVisitor& _visitor) = 0;

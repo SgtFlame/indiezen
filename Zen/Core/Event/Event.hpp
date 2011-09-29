@@ -31,6 +31,8 @@
 #include <Zen/Core/Threading/I_Mutex.hpp>
 #include <Zen/Core/Threading/MutexFactory.hpp>
 #include <Zen/Core/Threading/CriticalSection.hpp>
+#include <Zen/Core/Threading/I_Condition.hpp>
+#include <Zen/Core/Threading/ConditionFactory.hpp>
 
 #include <boost/function.hpp>
 
@@ -70,6 +72,7 @@ class Event
     /// @{
 public:
     typedef Threading::I_Mutex*                         pMutex_type;
+    typedef Threading::I_Condition*                     pCondition_type;
     typedef boost::function<void (Parm1_type)>          delegate_type;
     typedef Connection<Parm1_type>                      connection_type;
     typedef connection_type*                            pConnection_type;
@@ -94,6 +97,8 @@ public:
         Threading::CriticalSection guard(m_pMutex);
 
         m_connections.push_back(pConnection);
+
+        m_pConnectionsEmpty->retractCondition();
 
         return pConnection;
     }
@@ -128,6 +133,11 @@ private:
 
         // This is the only place where a connection is deleted.
         delete _pConnection;
+
+        if (m_connections.empty())
+        {
+            m_pConnectionsEmpty->assertCondition();
+        }
     }
     /// @}
 
@@ -143,6 +153,7 @@ public:
 private:
     container_type	m_connections;
     pMutex_type     m_pMutex;
+    pCondition_type m_pConnectionsEmpty;
     /// @}
 
 };  // class Event
@@ -153,6 +164,7 @@ inline
 Event<Parm1_type>::Event()
 :   m_connections()
 ,   m_pMutex(Threading::MutexFactory::create())
+,   m_pConnectionsEmpty(Threading::ConditionFactory::create())
 {
 }
 
@@ -187,6 +199,10 @@ Event<Parm1_type>::~Event()
             (*iter)->disconnect();
         }
     }
+
+    m_pConnectionsEmpty->requireCondition();
+
+    Threading::ConditionFactory::destroy(m_pConnectionsEmpty);
 
     // And finally, destroy the mutex.
     Threading::MutexFactory::destroy(m_pMutex);
