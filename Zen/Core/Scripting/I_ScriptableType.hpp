@@ -68,6 +68,7 @@ public:
     /// @{
 protected:
              I_ScriptableType();
+public:
     virtual ~I_ScriptableType();
     /// @}
 

@@ -41,7 +41,6 @@ I_PluginManager::~I_PluginManager()
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 static PluginManager sm_PluginManager;
-
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 I_PluginManager&
 I_PluginManager::getSingleton()

@@ -53,7 +53,7 @@ NetworkManager::createNetworkService(const std::string& _name)
     I_NetworkServiceFactory* pFactory = NULL;
 
     Plugins::I_ExtensionRegistry& extensionRegistry = Plugins::I_ExtensionRegistry::getSingleton();
-    Zen::Plugins::I_ExtensionQuery* const pQuery = extensionRegistry.createQuery();
+    const Zen::Plugins::I_ExtensionRegistry::pExtensionQuery_type pQuery = extensionRegistry.createQuery();
 
     pQuery->setNamespace("IndieZen::Networking");
     pQuery->setExtensionPoint("NetworkService");

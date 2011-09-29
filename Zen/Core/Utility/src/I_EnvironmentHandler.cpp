@@ -41,17 +41,30 @@ I_EnvironmentHandler::~I_EnvironmentHandler()
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+static I_EnvironmentHandler* sm_pDefaultHandler = NULL;
+namespace {
+    class gc
+    {
+    public:
+        ~gc()
+        {
+            if (sm_pDefaultHandler != NULL)
+            {
+                delete sm_pDefaultHandler;
+            }
+        }
+    };  // class gc
+}   // namespace
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 I_EnvironmentHandler&
 I_EnvironmentHandler::getDefaultHandler()
 {
-    static I_EnvironmentHandler* pDefaultHandler = NULL;
-
-    if (pDefaultHandler == NULL)
+    if (sm_pDefaultHandler == NULL)
     {
-        pDefaultHandler = new EnvironmentHandler();
+        sm_pDefaultHandler = new EnvironmentHandler();
     }
 
-    return *pDefaultHandler;
+    return *sm_pDefaultHandler;
 }
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 }   // namespace Utility

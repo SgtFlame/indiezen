@@ -12,6 +12,12 @@
 #    pragma inline_recursion(off)
 #    pragma warning(disable:4251)   // 'identifier' : class 'type' needs to have dll-interface to be used by clients of class 'type2'
 #    pragma warning(disable:4275)   // non – DLL-interface classkey 'identifier' used as base for DLL-interface classkey 'identifier'
+#ifdef VLD
+# include <winsock2.h>
+# include <ws2tcpip.h>
+# include <mswsock.h>
+#include <vld.h>
+#endif // VLD
 #endif  // _MSC_VER
 
 

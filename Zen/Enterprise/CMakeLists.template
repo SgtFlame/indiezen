@@ -12,6 +12,9 @@ list (REMOVE_DUPLICATES CMAKE_MODULE_PATH)
 
 Find_Package(IndieZen REQUIRED)
 Find_Package(Boost REQUIRED program_options date_time)
+if (MSVC)
+Find_Package(VLD)
+endif (MSVC)
 
 SET (LIB_TYPE SHARED)
 
@@ -24,19 +27,33 @@ set ( ZenEnterprise_SRC
 <%SourceList%>
     )
 
-add_definitions( -DZENENTERPRISE_EXPORTS ${Zen_DEFINITIONS} )
+set (ZenEnterprise_DEFINITIONS -DZENENTERPRISE_EXPORTS ${Zen_DEFINITIONS} )
+if (MSVC AND VLD_FOUND)
+	set (ZenEnterprise_DEFINITIONS ${ZenEnterprise_DEFINITIONS} -DVLD)
+endif (MSVC AND VLD_FOUND)
+add_definitions(${ZenEnterprise_DEFINITIONS})
 
 include_directories ( ${Boost_INCLUDE_DIR} ${INDIEZEN_PARENT} ${LIBXML2_INCLUDE_DIR} )
+if (MSVC AND VLD_FOUND)
+	include_directories (${VLD_INCLUDE_DIR})
+endif (MSVC AND VLD_FOUND)
 
-link_directories ( ${DEV_LIB} ${Boost_LIBRARY_DIRS} )
+set (ZenEnterprise_LINK_DIRECTORIES ${DEV_LIB} ${Boost_LIBRARY_DIRS})
+if (MSVC AND VLD_FOUND)
+	set (ZenEnterprise_LINK_DIRECTORIES ${ZenEnterprise_LINK_DIRECTORIES} ${VLD_LIB_DIR})
+endif (MSVC AND VLD_FOUND)
+link_directories (${ZenEnterprise_LINK_DIRECTORIES})
 
 add_library ( ZenEnterprise ${LIB_TYPE} ${ZenEnterprise_SRC} )
 
 add_dependencies(ZenEnterprise ZenCore)
 
-message("Boost libraries: ${Boost_LIBRARIES}")
+set (ZenEnterprise_LIBRARIES ZenCore ${Boost_LIBRARIES})
+if (MSVC AND VLD_FOUND)
+	set(ZenEnterprise_LIBRARIES ${ZenEnterprise_LIBRARIES} ${VLD_LIBRARIES})
+endif (MSVC AND VLD_FOUND)
 
-target_link_libraries( ZenEnterprise ZenCore ${Boost_LIBRARIES} )
+target_link_libraries( ZenEnterprise ${ZenEnterprise_LIBRARIES})
 
 set_target_properties ( ZenEnterprise 
 						PROPERTIES

@@ -171,7 +171,7 @@ Factory_type*
 ServiceCache<Service_type, Factory_type>::getFactory(index_type _type)
 {
     // Create an extension query
-    I_ExtensionQuery* const pQuery = I_ExtensionRegistry::getSingleton().createQuery();
+    const I_ExtensionRegistry::pExtensionQuery_type pQuery = I_ExtensionRegistry::getSingleton().createQuery();
 
     pQuery->setNamespace(Service_type::getNamespace());
     pQuery->setExtensionPoint(Service_type::getExtensionPointName());

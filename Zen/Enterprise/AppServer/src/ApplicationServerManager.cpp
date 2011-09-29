@@ -45,13 +45,14 @@ namespace Enterprise {
 namespace AppServer {
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 ApplicationServerManager::ApplicationServerManager()
+:   m_pResourceLocationGuard(Threading::MutexFactory::create())
 {
-    m_pResourceLocationGuard = Threading::MutexFactory::create();
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 ApplicationServerManager::~ApplicationServerManager()
 {
+    Threading::MutexFactory::destroy(m_pResourceLocationGuard);
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
@@ -111,7 +112,14 @@ ApplicationServerManager::createLocation(const std::string& _location)
     ResourceLocations_type::iterator iter = m_resourceLocations.find(_location);
     if (iter != m_resourceLocations.end())
     {
-        return iter->second.lock();
+        if (!iter->second.expired())
+        {
+            return iter->second.lock();
+        }
+        else
+        {
+            m_resourceLocations.erase(iter);
+        }
     }
 
     // Wasn't found, so make one.

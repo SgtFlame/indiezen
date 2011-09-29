@@ -263,6 +263,7 @@ void ThreadPool::ThreadPoolRunnable::run() throw ()
 {
     try
     {
+        // ThreadPool startup
         {
             bool readyToRockAndRoll;
             {
@@ -278,6 +279,7 @@ void ThreadPool::ThreadPoolRunnable::run() throw ()
             }
         }
 
+        // ThreadPool inner loop
         std::list<Task*> taskList;
         while (!m_pool.m_amStoppingAsSoonAsPossible)    // volatile
         {

@@ -89,6 +89,7 @@ public:
     /// @{
 protected:
 			 I_EnvironmentHandler();
+public:
 	virtual ~I_EnvironmentHandler();
     /// @}
 

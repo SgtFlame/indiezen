@@ -53,8 +53,8 @@ public:
     /// @{
 public:
     virtual extension_point_ptr_type getExtensionPoint(const std::string& _namespace, const std::string& _extensionPointName);
-    virtual extension_query_ptr_type createQuery();
-    virtual extension_result_set_ptr_type findExtensions(I_ExtensionQuery* const _pQuery);
+    virtual I_ExtensionRegistry::pExtensionQuery_type createQuery();
+    virtual extension_result_set_ptr_type findExtensions(const pExtensionQuery_type _pQuery);
     virtual void getExtensionPoints(I_ExtensionPointVisitor& _visitor);
     virtual class_factory_ref_type getClassFactory(extension_ptr_type _extension);
     /// @}

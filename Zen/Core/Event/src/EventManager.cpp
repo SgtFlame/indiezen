@@ -48,23 +48,30 @@ EventManager::pEventService_type
 EventManager::create(const std::string& _eventServiceName)
 {
     // TODO Handle _eventServiceName correctly.
-    Threading::CriticalSection  guard(m_pEventServicesMutex);
-
-    EventServices_type::iterator iter = m_eventServices.find(_eventServiceName);
-    if(iter == m_eventServices.end())
     {
-        EventService* pRawEventService = new EventService(_eventServiceName);
+        Threading::CriticalSection  guard(m_pEventServicesMutex);
 
-        pEventService_type pEventService(pRawEventService, boost::bind(&EventManager::destroy, this, _1));
+        EventServices_type::iterator iter = m_eventServices.find(_eventServiceName);
+        if(iter == m_eventServices.end())
+        {
+            EventService* pRawEventService = new EventService(_eventServiceName);
 
-        m_eventServices[_eventServiceName] = pEventService.getWeak();
+            pEventService_type pEventService(pRawEventService, boost::bind(&EventManager::destroy, this, _1));
 
-        return pEventService;
+            m_eventServices[_eventServiceName] = pEventService.getWeak();
+
+            return pEventService;
+        }
+        else
+        {
+            if (!iter->second.expired())
+            {
+                return iter->second.lock();
+            }
+        }
     }
-    else
-    {
-        return iter->second.lock();
-    }
+
+    return create(_eventServiceName);
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~

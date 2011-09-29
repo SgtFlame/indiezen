@@ -47,7 +47,17 @@ I_ApplicationServer::~I_ApplicationServer()
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 static std::map<std::string, I_ApplicationServer*>   sm_servers;
 static Threading::I_Mutex* sm_pServerGuard = Threading::MutexFactory::create();
-namespace { class gc { public: ~gc() { Threading::MutexFactory::destroy(sm_pServerGuard); } }; }
+namespace {
+    class gc 
+    { 
+    public: 
+        ~gc() 
+        { 
+            Threading::MutexFactory::destroy(sm_pServerGuard); 
+        } 
+    }; 
+    static gc sm_garbageCollection;
+}   // namespace
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 I_ApplicationServer&
 I_ApplicationServer::getInstance(const std::string& _instanceName)

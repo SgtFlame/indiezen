@@ -77,17 +77,17 @@ ExtensionRegistry::getExtensionPoint(const std::string& _namespace, const std::s
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-I_ExtensionRegistry::extension_query_ptr_type
+I_ExtensionRegistry::pExtensionQuery_type
 ExtensionRegistry::createQuery()
 {
-    extension_query_ptr_type pQuery(new ExtensionQuery);
+    pExtensionQuery_type pQuery(new ExtensionQuery);
 
     return pQuery;
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 I_ExtensionRegistry::extension_result_set_ptr_type
-ExtensionRegistry::findExtensions(I_ExtensionQuery* const _pQuery)
+ExtensionRegistry::findExtensions(const pExtensionQuery_type _pQuery)
 {
     // Get the logger stream
     Zen::Utility::log_stream& logStream(
@@ -98,7 +98,7 @@ ExtensionRegistry::findExtensions(I_ExtensionQuery* const _pQuery)
 
     extension_result_set_ptr_type pResult(new extension_result_set_type);
 
-    ExtensionQuery* const pQuery = dynamic_cast<ExtensionQuery*>(_pQuery);
+    ExtensionQuery* const pQuery = dynamic_cast<ExtensionQuery*>(_pQuery.get());
 
     // TODO This code was written with the assumption that the query fills in a namespace and an extension.
     // Should the createQuery() method require these two as parameters or should we not assume that these
