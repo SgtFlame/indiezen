@@ -121,6 +121,13 @@ UserDatagramProtocolService::getConfiguration() const
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 UserDatagramProtocolService::pEndpoint_type
+UserDatagramProtocolService::getEndpoint()
+{
+    return resolveEndpoint(m_address, m_port);
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+UserDatagramProtocolService::pEndpoint_type
 UserDatagramProtocolService::resolveEndpoint(const std::string& _address,
                                              const std::string& _port)
 {
@@ -137,7 +144,6 @@ UserDatagramProtocolService::resolveEndpoint(const std::string& _address,
     // is called.  Since "listen()" is not a valid method (listen ports are 
     // determined by the configuration) then we probably aren't ever creating
     // a non-local endpoint.
-    pEndpoint->setIsLocal(false);
     return pEndpoint;
 }
 
@@ -332,9 +338,6 @@ UserDatagramProtocolService::handleEstablish(const boost::system::error_code& _e
                 )
             );
 
-            // This endpoint is not local since it was newly established.
-            pEndpoint->setIsLocal(false);
-
             m_pNewSession->start(pEndpoint);
 
             m_pNewSession->handleMessageBuffer(m_readMessage);
@@ -413,9 +416,6 @@ UserDatagramProtocolService::sendTo(pMessage_type _pMessage,
                 pSession = m_pNewSession;
 
                 createSession();
-
-                // Assume this is an outbound endpoint.
-                pEndpoint->setIsLocal(false);
 
                 m_sessionMap[pEndpoint->getEndpoint()] = pSession;
                 pSession->establish(_pEndpoint);

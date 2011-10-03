@@ -414,6 +414,8 @@ public:
     /// @{
 public:
     virtual I_ApplicationServer& getApplicationServer();
+    virtual const std::string& getServiceName() const;
+    virtual pEndpoint_type getServiceEndpoint();
     virtual pResourceLocation_type getServiceLocation();
     virtual void handleMessage(pMessage_type _pMessage);
     /// @}
@@ -434,18 +436,24 @@ public:
     void registerMessageHandler(pMessageType_type _pMessageType, boost::function<void(pMessage_type)> _function);
     void unregisterMessageHandler(pMessageType_type _pMessageType);
     void pushTask(Zen::Threading::ThreadPool::Task* _pTask);
+
+    I_ApplicationServer::pProtocolService_type getProtocol();
     /// @}
 
     /// @name 'Structors
     /// @{
 protected:
-             scriptable_generic_service(Zen::Enterprise::AppServer::I_ApplicationServer& _appServer);
+             scriptable_generic_service(Zen::Enterprise::AppServer::I_ApplicationServer& _appServer, const std::string& _name);
     virtual ~scriptable_generic_service();
     /// @}
 
     /// @name Member Variables
     /// @{
 private:
+    const std::string                                   m_name;
+
+    std::string                                         m_protocol;
+
     I_ApplicationServer&                                m_appServer;
 
     pResourceLocation_type                              m_pLocation;
@@ -472,8 +480,10 @@ protected:
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 template<typename BaseClass_type, typename Class_type>
 inline
-scriptable_generic_service<BaseClass_type, Class_type>::scriptable_generic_service(Zen::Enterprise::AppServer::I_ApplicationServer& _appServer)
+scriptable_generic_service<BaseClass_type, Class_type>::scriptable_generic_service(Zen::Enterprise::AppServer::I_ApplicationServer& _appServer, const std::string& _name)
 :   m_appServer(_appServer)
+,   m_name(_name)
+,   m_protocol("default")
 ,   m_pHandlersMutex(Zen::Threading::MutexFactory::create())
 {
 }
@@ -494,6 +504,9 @@ scriptable_generic_service<BaseClass_type, Class_type>::setConfiguration(const Z
 {
     m_pLocation = Zen::Enterprise::AppServer::I_ApplicationServerManager::getSingleton()
         .createLocation(_config.getAttribute("location"));
+
+    std::string protocol = _config.getAttribute("protocol");
+    m_protocol = protocol.empty() ? "default" : protocol;
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
@@ -539,6 +552,27 @@ I_ApplicationServer&
 scriptable_generic_service<BaseClass_type, Class_type>::getApplicationServer()
 {
     return m_appServer;
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+template<typename BaseClass_type, typename Class_type>
+const std::string&
+scriptable_generic_service<BaseClass_type, Class_type>::getServiceName() const
+{
+    return m_name;
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+template<typename BaseClass_type, typename Class_type>
+I_ApplicationService::pEndpoint_type
+scriptable_generic_service<BaseClass_type, Class_type>::getServiceEndpoint()
+{
+    if (getProtocol().isValid())
+    {
+        return getProtocol()->getEndpoint();
+    }
+
+    return pEndpoint_type();
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
@@ -882,6 +916,15 @@ void
 scriptable_generic_service<BaseClass_type, Class_type>::pushTask(Zen::Threading::ThreadPool::Task* _pTask)
 {
     m_pThreadPool->pushRequest(_pTask);
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+template<typename BaseClass_type, typename Class_type>
+inline
+I_ApplicationServer::pProtocolService_type
+scriptable_generic_service<BaseClass_type, Class_type>::getProtocol()
+{
+    return m_appServer.getProtocol(m_protocol);
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~

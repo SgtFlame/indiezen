@@ -31,6 +31,7 @@
 #include <Zen/Core/Plugins/I_StartupShutdownParticipant.hpp>
 
 #include <Zen/Enterprise/AppServer/I_RequestHandler.hpp>
+#include <Zen/Enterprise/Networking/I_Endpoint.hpp>
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 namespace Zen {
@@ -49,9 +50,10 @@ class APPSERVER_DLL_LINK I_ApplicationService
     /// @name Types
     /// @{
 public:
-    typedef Memory::managed_ptr<I_Message>                  pMessage_type;
-    typedef Zen::Memory::managed_ptr<I_MessageType>         pMessageType_type;
-    typedef Zen::Memory::managed_ptr<I_ResourceLocation>    pResourceLocation_type;
+    typedef Memory::managed_ptr<I_Message>                      pMessage_type;
+    typedef Zen::Memory::managed_ptr<I_MessageType>             pMessageType_type;
+    typedef Zen::Memory::managed_ptr<Networking::I_Endpoint>    pEndpoint_type;
+    typedef Zen::Memory::managed_ptr<I_ResourceLocation>        pResourceLocation_type;
     /// @}
 
     /// @name I_ApplicationService interface.
@@ -62,6 +64,12 @@ public:
     /// method.
     /// @see I_ApplicationServiceFactory
     virtual I_ApplicationServer& getApplicationServer() = 0;
+
+    /// Get the application service name.
+    virtual const std::string& getServiceName() const = 0;
+
+    /// Get the application service endpoint.
+    virtual pEndpoint_type getServiceEndpoint() = 0;
 
     /// Get the application service resource location.
     virtual pResourceLocation_type getServiceLocation() = 0;

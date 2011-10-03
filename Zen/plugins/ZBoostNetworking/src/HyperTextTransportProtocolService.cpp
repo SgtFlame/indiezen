@@ -144,6 +144,13 @@ HyperTextTransportProtocolService::getConfiguration() const
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 HyperTextTransportProtocolService::pEndpoint_type
+HyperTextTransportProtocolService::getEndpoint()
+{
+    return resolveEndpoint(m_address, m_port);
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+HyperTextTransportProtocolService::pEndpoint_type
 HyperTextTransportProtocolService::resolveEndpoint(const std::string& _address, const std::string& _port)
 {
     boost::asio::ip::tcp::resolver resolver(m_ioService);

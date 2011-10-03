@@ -52,13 +52,15 @@ public:
     virtual wpProtocolService_type getProtocolAdapter() const;
     virtual const std::string& toString() const { return m_endpointString; }
     virtual const Zen::Networking::I_Address& getAddress() const;
-    virtual void setIsLocal(bool _isLocal);
     virtual bool isLocal() const;
+    virtual bool operator==(const I_Endpoint& _otherEndpoint) const;
+    virtual bool operator!=(const I_Endpoint& _otherEndpoint) const;
     /// @}
 
     /// @name Endpoint implementation
     /// @{
 public:
+    const boost::asio::ip::udp::endpoint& getEndpoint() const;
     boost::asio::ip::udp::endpoint& getEndpoint();
     /// @}
 
@@ -76,7 +78,6 @@ public:
 private:
     wpProtocolService_type          m_pProtocolAdapter;
     boost::asio::ip::udp::endpoint  m_endpoint;
-    bool                            m_isLocal;
     std::string                     m_endpointString;
     /// @}
 

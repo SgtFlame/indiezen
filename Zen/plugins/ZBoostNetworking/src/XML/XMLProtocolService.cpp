@@ -147,6 +147,13 @@ XMLProtocolService::getConfiguration() const
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 XMLProtocolService::pEndpoint_type
+XMLProtocolService::getEndpoint()
+{
+    return resolveEndpoint(m_address, m_port);
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+XMLProtocolService::pEndpoint_type
 XMLProtocolService::resolveEndpoint(const std::string& _address, const std::string& _port)
 {
     boost::asio::ip::tcp::resolver resolver(m_ioService);

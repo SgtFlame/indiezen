@@ -126,6 +126,13 @@ TransmissionControlProtocolService::getConfiguration() const
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 TransmissionControlProtocolService::pEndpoint_type
+TransmissionControlProtocolService::getEndpoint()
+{
+    return resolveEndpoint(m_address, m_port);
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+TransmissionControlProtocolService::pEndpoint_type
 TransmissionControlProtocolService::resolveEndpoint(const std::string& _address, const std::string& _port)
 {
     boost::asio::ip::tcp::resolver resolver(m_ioService);
@@ -142,7 +149,6 @@ TransmissionControlProtocolService::resolveEndpoint(const std::string& _address,
     // is called.  Since "listen()" is not a valid method (listen ports are 
     // determined by the configuration) then we probably aren't ever creating
     // a non-local endpoint.
-    pEndpoint->setIsLocal(false);
     return pEndpoint;
 }
 
@@ -175,9 +181,6 @@ TransmissionControlProtocolService::sendTo(pMessage_type _pMessage, pEndpoint_ty
                 pConnection = m_pNewConnection;
 
                 createConnection();
-
-                // Assume this is an outbound endpoint.
-                pEndpoint->setIsLocal(false);
 
                 m_connectionMap[pEndpoint->getEndpoint()] = pConnection;
                 pConnection->connect(_pEndpoint);
@@ -429,9 +432,6 @@ TransmissionControlProtocolService::handleAccept(const boost::system::error_code
     {
         // The new connection is now connected, so start it.
         pEndpoint_type pEndpoint(new Endpoint(getSelfReference(), m_endpoint), boost::bind(&TransmissionControlProtocolService::destroyEndpoint, this, _1));
-
-        // This endpoint is not local since it was established from an accept.
-        pEndpoint->setIsLocal(false);
 
         m_pNewConnection->start(pEndpoint);
 

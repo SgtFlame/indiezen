@@ -53,6 +53,10 @@ public:
 public:
     /// Get the location as a string.
     virtual const std::string& toString() const = 0;
+
+    /// Operators
+    virtual bool operator==(const I_ResourceLocation& _otherLocation) const = 0;
+    virtual bool operator!=(const I_ResourceLocation& _otherLocation) const = 0;
     /// @}
 
     /// @name Events
