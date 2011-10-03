@@ -47,6 +47,8 @@ public:
     /// @{
 public:
     virtual const std::string& toString() const;
+    virtual bool operator==(const I_ResourceLocation& _otherLocation) const;
+    virtual bool operator!=(const I_ResourceLocation& _otherLocation) const;
     /// @}
 
     /// @name ResourceLocation implementation

@@ -44,7 +44,6 @@ namespace AppServer {
 Endpoint::Endpoint(wpProtocolService_type _pProtocolAdapter, const boost::asio::ip::tcp::endpoint& _endpoint)
 :   m_pProtocolAdapter(_pProtocolAdapter)
 ,   m_endpoint(_endpoint)
-,   m_isLocal(true)
 {
     std::stringstream endpointStream;
     endpointStream << _endpoint;
@@ -57,10 +56,19 @@ Endpoint::~Endpoint()
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+const boost::asio::ip::tcp::endpoint&
+Endpoint::getEndpoint() const
+{
+    return m_endpoint;
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 boost::asio::ip::tcp::endpoint&
 Endpoint::getEndpoint()
 {
-    return m_endpoint;
+    return const_cast<boost::asio::ip::tcp::endpoint&>(
+        static_cast<const Endpoint&>(*this).getEndpoint()
+    );
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
@@ -78,17 +86,31 @@ Endpoint::getAddress() const
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-void
-Endpoint::setIsLocal(bool _isLocal)
+bool
+Endpoint::isLocal() const
 {
-    m_isLocal = _isLocal;
+    return *this == *m_pProtocolAdapter->getEndpoint();
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 bool
-Endpoint::isLocal() const
+Endpoint::operator==(const I_Endpoint& _otherEndpoint) const
 {
-    return m_isLocal;
+    const Endpoint* pEndpoint = dynamic_cast<const Endpoint*>(&_otherEndpoint);
+
+    if (pEndpoint != NULL)
+    {
+        return m_endpoint == pEndpoint->getEndpoint();
+    }
+
+    return false;
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+bool
+Endpoint::operator!=(const I_Endpoint& _otherEndpoint) const
+{
+    return !(*this == _otherEndpoint);
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~

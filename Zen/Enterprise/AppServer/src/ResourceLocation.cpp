@@ -46,6 +46,20 @@ ResourceLocation::toString() const
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+bool
+ResourceLocation::operator==(const I_ResourceLocation& _otherLocation) const
+{
+    return m_stringValue == _otherLocation.toString();
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+bool
+ResourceLocation::operator!=(const I_ResourceLocation& _otherLocation) const
+{
+    return !(*this == _otherLocation);
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 void
 ResourceLocation::setApplicationService(pApplicationService_type _pApplicationService)
 {

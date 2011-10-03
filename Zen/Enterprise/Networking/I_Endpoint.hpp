@@ -66,17 +66,13 @@ public:
     /// Get the network address that is associated with this endpoint.
     virtual const Zen::Networking::I_Address& getAddress() const = 0;
 
-    /// Indicate if this endpoint is a local endpoint.
-    /// If false, this endpoint can only be reached over a network.
-    /// If true, this endpoint can be reached within the same 
-    /// process and any remote procedure calls can be executed
-    /// via method calls instead of serialized and sent over the
-    /// network.
-    virtual void setIsLocal(bool _isLocal) = 0;
-
     /// @return true if this endpoint is within the same process
     ///     as the calling method.
     virtual bool isLocal() const = 0;
+
+    /// Operators
+    virtual bool operator==(const I_Endpoint& _otherEndpoint) const = 0;
+    virtual bool operator!=(const I_Endpoint& _otherEndpoint) const = 0;
     /// @}
 
     /// @name 'Structors

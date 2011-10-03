@@ -67,6 +67,9 @@ public:
     /// @see I_ProtocolServiceFactory
     virtual I_ApplicationServer& getApplicationServer() = 0;
 
+    /// Get the endpoint for this protocol adapter.
+    virtual pEndpoint_type getEndpoint() = 0;
+
     /// Resolve the endpoint for an address and port specified by strings.
     /// If the resolver and the operating system supports it, _port can also 
     /// contain service names such as "http".
