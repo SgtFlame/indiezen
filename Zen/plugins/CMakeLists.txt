@@ -141,7 +141,7 @@ endif(OPENAL_FOUND AND ALUT_FOUND AND OGG_FOUND AND VORBIS_FOUND)
 
 #add_subdirectory( ZOpenAL )
 
-endif (ZEN_BUILD_ENGINE)
+endif (ZEN_BUILD_ENGINE_PLUGINS)
 #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
 if (ZEN_BUILD_ENTERPRISE)

@@ -243,6 +243,7 @@ public:
     /// @{
 protected:
              I_ApplicationServer();
+public:
     virtual ~I_ApplicationServer();
     /// @}
 
