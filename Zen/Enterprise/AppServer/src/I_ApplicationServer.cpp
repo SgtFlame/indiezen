@@ -53,6 +53,16 @@ namespace {
     public: 
         ~gc() 
         { 
+            {
+                Zen::Threading::CriticalSection guard(sm_pServerGuard);
+
+                while (!sm_servers.empty())
+                {
+                    delete sm_servers.begin()->second;
+                    sm_servers.erase(sm_servers.begin());
+                }
+            }
+
             Threading::MutexFactory::destroy(sm_pServerGuard); 
         } 
     }; 

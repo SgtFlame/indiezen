@@ -84,10 +84,9 @@ UserDatagramProtocolService::UserDatagramProtocolService(Zen::Enterprise::AppSer
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 UserDatagramProtocolService::~UserDatagramProtocolService()
 {
-    if (m_pSocket != NULL)
-    {
-        delete m_pSocket;
-    }
+    prepareToStop();
+
+    stop();
 
     Zen::Threading::MutexFactory::destroy(m_pSessionsGuard);
 }
@@ -202,27 +201,19 @@ UserDatagramProtocolService::start()
 Zen::Threading::I_Condition*
 UserDatagramProtocolService::prepareToStop()
 {
-    delete m_pWork;
+    m_pNewSession.reset();
 
-    Zen::Threading::CriticalSection lock(m_pSessionsGuard);
+    m_sessionMap.clear();
+
+    if (m_pWork != NULL)
+    {
+        delete m_pWork;
+        m_pWork = NULL;
+    }
 
     for (Threads_type::iterator iter = m_threads.begin(); iter != m_threads.end(); iter++)
     {
         (*iter)->stop();
-    }
-
-    m_ioService.stop();
-
-    return NULL;
-}
-
-//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-void
-UserDatagramProtocolService::stop()
-{
-    // Join all of the threads
-    for (Threads_type::iterator iter = m_threads.begin(); iter != m_threads.end(); iter++)
-    {
         (*iter)->join();
         Zen::Threading::ThreadFactory::destroy(*iter);
     }
@@ -232,6 +223,25 @@ UserDatagramProtocolService::stop()
     Zen::Threading::CriticalSection lock(m_pSessionsGuard);
 
     m_threads.clear();
+
+    if (m_pSocket != NULL)
+    {
+        m_pSocket->cancel();
+        delete m_pSocket;
+        m_pSocket = NULL;
+    }
+
+    m_ioService.stop();
+    m_ioService.reset();
+
+    return NULL;
+}
+
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+void
+UserDatagramProtocolService::stop()
+{
+    m_ioService.reset();
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
@@ -321,6 +331,8 @@ UserDatagramProtocolService::handleEstablish(const boost::system::error_code& _e
 {
     if (!_error && _bytesTransferred > 0 && m_readMessage.decodeHeader())
     {
+        Zen::Threading::CriticalSection guard(m_pSessionsGuard);
+
         pSession_type pSession;
         SessionMap_type::iterator iter = m_sessionMap.find(m_remoteEndpoint);
         if (iter == m_sessionMap.end())
@@ -338,7 +350,11 @@ UserDatagramProtocolService::handleEstablish(const boost::system::error_code& _e
                 )
             );
 
-            m_pNewSession->start(pEndpoint);
+            {
+                Zen::Threading::CriticalSection_ExemptionZone exemption(guard);
+
+                m_pNewSession->start(pEndpoint);
+            }
 
             m_pNewSession->handleMessageBuffer(m_readMessage);
 
@@ -462,6 +478,7 @@ UserDatagramProtocolService::disconnect(pEndpoint_type _pEndpoint)
         SessionMap_type::iterator iter = m_sessionMap.find(pEndpoint->getEndpoint());
         if (iter != m_sessionMap.end())
         {
+            Zen::Threading::CriticalSection_ExemptionZone exemptionZone(guard);
             iter->second->terminate();
         }
     }
@@ -503,7 +520,14 @@ UserDatagramProtocolService::onTerminateSession(pSession_type _pSession)
 
     typedef Zen::Memory::managed_ptr<UDP::Endpoint>     pConcreteEndpoint_type;
 
-    m_sessionMap.erase(_pSession->getPeer().as<pConcreteEndpoint_type>()->getEndpoint());
+    SessionMap_type::iterator iter = m_sessionMap.find(
+        _pSession->getPeer().as<pConcreteEndpoint_type>()->getEndpoint()
+    );
+
+    if (iter != m_sessionMap.end())
+    {
+        m_sessionMap.erase(iter);
+    }
 
     // Dispatch this event.
     getDisconnectedEvent().fireEvent(_pSession->getPeer());
