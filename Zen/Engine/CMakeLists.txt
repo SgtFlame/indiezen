@@ -333,7 +333,10 @@ set ( ZenEngine_SRC
     Physics/I_CollisionService.hpp
     Physics/I_CollisionShape.hpp
     Physics/I_HeightfieldShape.hpp
+    Physics/I_MeshCollisionShape.hpp
     Physics/I_PhysicsActor.hpp
+    Physics/I_PhysicsFrame.hpp
+    Physics/I_PhysicsFrameListener.hpp
     Physics/I_PhysicsGroup.hpp
     Physics/I_PhysicsJoint.hpp
     Physics/I_PhysicsManager.hpp
@@ -343,7 +346,10 @@ set ( ZenEngine_SRC
     Physics/I_PhysicsZone.hpp
     Physics/src/I_CollisionService.cpp
     Physics/src/I_CollisionShape.cpp
+    Physics/src/I_MeshCollisionShape.cpp
     Physics/src/I_PhysicsActor.cpp
+    Physics/src/I_PhysicsFrame.cpp
+    Physics/src/I_PhysicsFrameListener.cpp
     Physics/src/I_PhysicsGroup.cpp
     Physics/src/I_PhysicsJoint.cpp
     Physics/src/I_PhysicsManager.cpp
@@ -368,6 +374,7 @@ set ( ZenEngine_SRC
     Rendering/I_Canvas.hpp
     Rendering/I_Context.hpp
     Rendering/I_Light.hpp
+    Rendering/I_Mesh.hpp
     Rendering/I_ParticleSystem.hpp
     Rendering/I_PickingCanvas.hpp
     Rendering/I_Plane.hpp
@@ -400,6 +407,7 @@ set ( ZenEngine_SRC
     Rendering/src/I_Canvas.cpp
     Rendering/src/I_Context.cpp
     Rendering/src/I_Light.cpp
+    Rendering/src/I_Mesh.cpp
     Rendering/src/I_ParticleSystem.cpp
     Rendering/src/I_Plane.cpp
     Rendering/src/I_Renderable.cpp
@@ -723,7 +731,10 @@ install ( FILES
     Physics/I_CollisionService.hpp
     Physics/I_CollisionShape.hpp
     Physics/I_HeightfieldShape.hpp
+    Physics/I_MeshCollisionShape.hpp
     Physics/I_PhysicsActor.hpp
+    Physics/I_PhysicsFrame.hpp
+    Physics/I_PhysicsFrameListener.hpp
     Physics/I_PhysicsGroup.hpp
     Physics/I_PhysicsJoint.hpp
     Physics/I_PhysicsManager.hpp
@@ -751,6 +762,7 @@ install ( FILES
     Rendering/I_Canvas.hpp
     Rendering/I_Context.hpp
     Rendering/I_Light.hpp
+    Rendering/I_Mesh.hpp
     Rendering/I_ParticleSystem.hpp
     Rendering/I_PickingCanvas.hpp
     Rendering/I_Plane.hpp

@@ -55,6 +55,8 @@ set ( ZOgre_SRC
     src/I_OgreRenderingCanvas.cpp
     src/I_OgreSceneService.cpp
     src/I_OgreView.cpp
+    src/Mesh.cpp
+    src/Mesh.hpp
     src/NullCamera.cpp
     src/NullCamera.hpp
     src/NullContext.hpp

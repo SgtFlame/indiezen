@@ -33,6 +33,8 @@ set ( ZODE_SRC
     src/HeightfieldCollisionShape.hpp
     src/HeightfieldResource.cpp
     src/HeightfieldResource.hpp
+    src/MeshCollisionShape.cpp
+    src/MeshCollisionShape.hpp
     src/PhysicsActor.cpp
     src/PhysicsActor.hpp
     src/PhysicsJoint.cpp
