@@ -19,6 +19,12 @@ SET (LIB_TYPE SHARED)
 # Include various modules of Zen Engine
 
 source_group(
+    resources\\
+	REGULAR_EXPRESSION 
+	resources/*.*
+	)
+
+source_group(
     scripts\\
 	REGULAR_EXPRESSION 
 	scripts/*.*

@@ -11,7 +11,7 @@ set(CMAKE_MODULE_PATH "${INDIEZEN_PARENT}/Zen/build/CMake/Modules" ${CMAKE_CURRE
 list (REMOVE_DUPLICATES CMAKE_MODULE_PATH)
 
 Find_Package(IndieZen REQUIRED)
-Find_Package(Boost REQUIRED program_options date_time)
+Find_Package(Boost REQUIRED program_options)
 
 SET (LIB_TYPE SHARED)
 
@@ -117,9 +117,7 @@ set ( ZenEnterprise_SRC
     AppServer/I_ApplicationServerManager.hpp
     AppServer/I_ApplicationService.hpp
     AppServer/I_ApplicationServiceFactory.hpp
-    AppServer/I_Connection.hpp
     AppServer/I_Container.hpp
-    AppServer/I_FullyQualifiedResourceLocation.hpp
     AppServer/I_Message.hpp
     AppServer/I_MessageFactory.hpp
     AppServer/I_MessageHandler.hpp
@@ -143,15 +141,11 @@ set ( ZenEnterprise_SRC
     AppServer/src/ApplicationServerManager.hpp
     AppServer/src/Container.cpp
     AppServer/src/Container.hpp
-    AppServer/src/FullyQualifiedResourceLocation.cpp
-    AppServer/src/FullyQualifiedResourceLocation.hpp
     AppServer/src/I_ApplicationServer.cpp
     AppServer/src/I_ApplicationServerManager.cpp
     AppServer/src/I_ApplicationService.cpp
     AppServer/src/I_ApplicationServiceFactory.cpp
-    AppServer/src/I_Connection.cpp
     AppServer/src/I_Container.cpp
-    AppServer/src/I_FullyQualifiedResourceLocation.cpp
     AppServer/src/I_Message.cpp
     AppServer/src/I_MessageFactory.cpp
     AppServer/src/I_MessageHandler.cpp
@@ -348,9 +342,7 @@ install ( FILES
     AppServer/I_ApplicationServerManager.hpp
     AppServer/I_ApplicationService.hpp
     AppServer/I_ApplicationServiceFactory.hpp
-    AppServer/I_Connection.hpp
     AppServer/I_Container.hpp
-    AppServer/I_FullyQualifiedResourceLocation.hpp
     AppServer/I_Message.hpp
     AppServer/I_MessageFactory.hpp
     AppServer/I_MessageHandler.hpp

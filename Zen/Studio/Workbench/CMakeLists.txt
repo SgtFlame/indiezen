@@ -33,6 +33,12 @@ source_group(
 	src/*.*
 	)
 
+source_group(
+    src\\Images\\
+	REGULAR_EXPRESSION 
+	src/Images/*.*
+	)
+
 
 	
 set ( Workbench_SRC
